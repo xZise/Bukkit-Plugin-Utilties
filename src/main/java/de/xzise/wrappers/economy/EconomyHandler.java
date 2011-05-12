@@ -57,11 +57,12 @@ public class EconomyHandler {
     private final XLogger logger;
 
     public EconomyHandler(PluginManager pluginManager, String economyPluginName, String economyBaseName, XLogger logger) {
-        this.setBaseAccount();
         this.economyPluginName = economyPluginName;
         this.economyBaseName = economyBaseName;
         this.pluginManager = pluginManager;
         this.logger = logger;
+        System.out.println("init.");
+        this.init();
     }
 
     /**

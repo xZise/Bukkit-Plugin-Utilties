@@ -61,7 +61,6 @@ public class EconomyHandler {
         this.economyBaseName = economyBaseName;
         this.pluginManager = pluginManager;
         this.logger = logger;
-        System.out.println("init.");
         this.init();
     }
 

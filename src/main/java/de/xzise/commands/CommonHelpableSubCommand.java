@@ -1,13 +1,11 @@
 package de.xzise.commands;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
 import de.xzise.wrappers.help.HelpAPI;
 
-public abstract class CommonHelpableSubCommand extends CommonSubCommand implements FullHelpable, CommandExecutor {
+public abstract class CommonHelpableSubCommand extends CommonSubCommand implements FullHelpable {
 
     protected CommonHelpableSubCommand(String... commands) {
         super(commands);
@@ -16,11 +14,6 @@ public abstract class CommonHelpableSubCommand extends CommonSubCommand implemen
     @Override
     public boolean listHelp(CommandSender sender) {
         return true;
-    }
-
-    @Override
-    public final boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return this.execute(sender, args);
     }
     
     @Override

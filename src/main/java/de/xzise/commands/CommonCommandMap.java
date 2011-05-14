@@ -10,6 +10,7 @@ import me.taylorkelly.help.Help;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
+import de.xzise.MinecraftUtil;
 import de.xzise.wrappers.help.HelpAPI;
 import de.xzise.wrappers.help.TKellyHelpPlugin;
 
@@ -85,7 +86,11 @@ public class CommonCommandMap implements CommandMap {
 
     @Override
     public SubCommand getCommand(String name) {
-        return this.subCommandsMap.get(name);
+        if (MinecraftUtil.isSet(name)) {
+            return this.subCommandsMap.get(name);
+        } else {
+            return this.defaultCommand;
+        }
     }
 
     @Override

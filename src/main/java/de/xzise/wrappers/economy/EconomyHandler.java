@@ -6,12 +6,11 @@ import java.util.Map;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
+import de.xzise.wrappers.Handler;
 import de.xzise.wrappers.economy.AccountWrapper;
 import de.xzise.wrappers.economy.BOSEcon0;
 import de.xzise.wrappers.economy.EconomyWrapper;
@@ -19,7 +18,7 @@ import de.xzise.wrappers.economy.EconomyWrapperFactory;
 import de.xzise.wrappers.economy.Essentials;
 import de.xzise.wrappers.economy.iConomyFactory;
 
-public class EconomyHandler {
+public class EconomyHandler extends Handler<EconomyWrapper> {
     
     public enum PayResult {
         /** The price was paid. */
@@ -49,19 +48,12 @@ public class EconomyHandler {
         public void add(int price) {}
     };
     
-    private EconomyWrapper economy;
     private AccountWrapper tax = NULLARY_ACCOUNT;
-    private String economyPluginName;
     private String economyBaseName;
-    private final PluginManager pluginManager;
-    private final XLogger logger;
 
     public EconomyHandler(PluginManager pluginManager, String economyPluginName, String economyBaseName, XLogger logger) {
-        this.economyPluginName = economyPluginName;
+        super(FACTORIES, pluginManager, "economy", economyPluginName, logger);
         this.economyBaseName = economyBaseName;
-        this.pluginManager = pluginManager;
-        this.logger = logger;
-        this.init();
     }
 
     /**
@@ -73,7 +65,7 @@ public class EconomyHandler {
      * @return If the price could be paid or if there was nothing to pay.
      */
     public PayResult pay(CommandSender sender, String reciever, int price, int basic) {
-        if (this.economy != null) {
+        if (this.getWrapper() != null) {
            Player player = MinecraftUtil.getPlayer(sender);
            if (player != null) {
                AccountWrapper executor = this.getAccount(player.getName());
@@ -104,87 +96,37 @@ public class EconomyHandler {
     }
     
     private final AccountWrapper getAccount(String name) {
-        return this.economy.getAccount(name);
+        return this.getWrapper().getAccount(name);
     }
     
     public PayResult pay(CommandSender sender, int basic) {
         return this.pay(sender, null, 0, basic);
     }
     
-    public boolean isActive() {
-        return this.economy != null;
-    }
-    
     public String format(int price) {
-        if (this.economy != null) {
-            return this.economy.format(price);
+        if (this.getWrapper() != null) {
+            return this.getWrapper().format(price);
         } else {
             return "";
         }
     }
     
     public void reloadConfig(String economyPluginName, String economyBaseName) {
-        this.economyPluginName = economyPluginName;
         this.economyBaseName = economyBaseName;
-        this.init();
+        this.setPluginName(economyPluginName);
         this.setBaseAccount();
     }
     
     private void setBaseAccount() {
         if (MinecraftUtil.isSet(this.economyBaseName) && this.isActive()) {
-            this.tax = this.economy.getAccount(this.economyBaseName);
+            this.tax = this.getWrapper().getAccount(this.economyBaseName);
         } else {
             this.tax = NULLARY_ACCOUNT;
         }
     }
     
-    public void init() {
-        this.economy = null;
-        for (String string : FACTORIES.keySet()) {
-            this.init(this.pluginManager.getPlugin(string));
-            if (this.economy != null) {
-                return;
-            }
-        }
-        if (this.economy == null) {
-            this.logger.info("No economy system found until here. Economy plugin will be maybe activated later.");
-        }
-    }
-
-    public void init(Plugin plugin) {
-        if (plugin != null && this.economy == null) {
-            PluginDescriptionFile pdf = plugin.getDescription();
-            if (!MinecraftUtil.isSet(this.economyPluginName) || (pdf.getName().equalsIgnoreCase(this.economyPluginName))) {
-                EconomyWrapperFactory factory = FACTORIES.get(pdf.getName());
-                if (factory != null) {
-                    if (plugin.isEnabled()) {
-                        try {
-                            this.economy = factory.create(plugin, this.logger);
-                        } catch (Exception e) {
-                            //TODO: Better exception handling
-                            this.economy = null;
-                        }
-                        if (this.economy == null) {
-                            this.logger.warning("Invalid economy system found: " + pdf.getFullName());
-                        } else {
-                            this.setBaseAccount();
-                            this.logger.info("Linked with economy system: " + pdf.getFullName());
-                        }
-                    } else {
-                        this.logger.warning("Doesn't link to disabled economy system: " + pdf.getFullName());
-                    }
-                }
-            }
-        }
-    }
-    
-    public boolean unload(Plugin plugin) {
-        if (this.economy != null && plugin == this.economy.getPlugin()) {
-            this.economy = null;
-            this.logger.info("Deactivated economy system.");
-            return true;
-        } else {
-            return false;
-        }
+    @Override
+    protected void loaded() {
+        this.setBaseAccount();
     }
 }

@@ -1,8 +1,9 @@
 package de.xzise.commands;
 
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
-public interface SubCommand {
+public interface SubCommand extends CommandExecutor {
 
     String[] getCommands();
 

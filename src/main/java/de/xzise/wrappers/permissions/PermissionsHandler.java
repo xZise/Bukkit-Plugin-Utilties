@@ -1,6 +1,5 @@
 package de.xzise.wrappers.permissions;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +37,11 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         public String getGroup(String world, String player) {
             return null;
         }
+
+        @Override
+        public Double getDouble(CommandSender sender, Permission<Double> permission) {
+            return null;
+        }
     };
     
     static {
@@ -57,8 +61,9 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         }
     }
 
-    public boolean permissionOr(CommandSender sender, Permission<Boolean>... permissions) {
-        return this.permissionOr(sender, Arrays.asList(permissions));
+    // To prevent the unchecked warning
+    public boolean permissionOr(CommandSender sender, Permission<Boolean> p1, Permission<Boolean> p2) {
+        return this.permission(sender, p1) || this.permission(sender, p2);
     }
     
     public boolean permissionOr(CommandSender sender, List<Permission<Boolean>> permissions) {
@@ -70,12 +75,21 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         return false;
     }
 
-    public int getInteger(CommandSender sender, Permission<Integer> permission, int def) {
+    public int getInteger(CommandSender sender, Permission<Integer> permission) {
         Integer result = this.getWrapper().getInteger(sender, permission);
         if (result != null) {
             return result;
         } else {
             return DEFAULT_PERMISSIONS.getInteger(sender, permission);
+        }
+    }
+    
+    public double getDouble(CommandSender sender, Permission<Double> permission) {
+        Double result = this.getWrapper().getDouble(sender, permission);
+        if (result != null) {
+            return result;
+        } else {
+            return DEFAULT_PERMISSIONS.getDouble(sender, permission);
         }
     }
 

@@ -1,12 +1,16 @@
 package de.xzise.wrappers.economy;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+
+import com.nijikokun.register.payment.Methods;
 
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
@@ -35,25 +39,34 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         FACTORIES.put("BOSEconomy", new BOSEcon0.Factory());
         FACTORIES.put("iConomy", new iConomyFactory());
         FACTORIES.put("Essentials", new Essentials.Factory());
+        FACTORIES.put("MineConomy", new MineConomy.Factory());
     }
     
     public static final AccountWrapper NULLARY_ACCOUNT = new AccountWrapper() {
         
         @Override
-        public boolean hasEnough(int price) {
+        public boolean hasEnough(double price) {
             return false;
         }
         
         @Override
-        public void add(int price) {}
+        public void add(double price) {}
     };
     
     private AccountWrapper tax = NULLARY_ACCOUNT;
+    private Methods methods = null;
     private String economyBaseName;
 
     public EconomyHandler(PluginManager pluginManager, String economyPluginName, String economyBaseName, XLogger logger) {
         super(FACTORIES, pluginManager, "economy", economyPluginName, logger);
         this.economyBaseName = economyBaseName;
+        try {
+            this.methods = new Methods();
+        } catch (NoClassDefFoundError e) {
+            this.methods = null;
+            this.logger.info("No Register found. Deactivating Register support.");
+        }
+        this.setBaseAccount();
     }
 
     /**
@@ -64,7 +77,7 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
      * @param basic The basic price like an tax.
      * @return If the price could be paid or if there was nothing to pay.
      */
-    public PayResult pay(CommandSender sender, String reciever, int price, int basic) {
+    public PayResult pay(CommandSender sender, String reciever, int price, double basic) {
         if (this.getWrapper() != null) {
            Player player = MinecraftUtil.getPlayer(sender);
            if (player != null) {
@@ -99,21 +112,32 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         return this.getWrapper().getAccount(name);
     }
     
-    public PayResult pay(CommandSender sender, int basic) {
+    public PayResult pay(CommandSender sender, double basic) {
         return this.pay(sender, null, 0, basic);
     }
     
-    public String format(int price) {
-        if (this.getWrapper() != null) {
-            return this.getWrapper().format(price);
-        } else {
-            return "";
+    public String format(double price) {
+        String result = null;
+        if (this.isActive()) {
+            result = this.getWrapper().format(price);
         }
+        
+        if (result == null) {
+            DecimalFormat fakeForm = new DecimalFormat("#,##0.##");
+            String fakeFormed = fakeForm.format(price);
+            if (fakeFormed.endsWith(".")) {
+                fakeFormed = fakeFormed.substring(0, fakeFormed.length() - 1);
+            }
+
+            return fakeFormed;
+        }
+        return result;
     }
     
     public void reloadConfig(String economyPluginName, String economyBaseName) {
         this.economyBaseName = economyBaseName;
         this.setPluginName(economyPluginName);
+        this.load();
         this.setBaseAccount();
     }
     
@@ -128,5 +152,15 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
     @Override
     protected void loaded() {
         this.setBaseAccount();
+    }
+    
+    @Override
+    protected boolean customLoad(Plugin plugin) {
+        if (this.methods != null && !this.methods.hasMethod() && this.methods.setMethod(plugin)) {
+            this.setWrapper(new MethodWrapper(this.methods.getMethod(), plugin));
+            return true;
+        } else {
+            return false;
+        }
     }
 }

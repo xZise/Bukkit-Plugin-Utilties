@@ -1,12 +1,15 @@
 package de.xzise.commands;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import me.taylorkelly.help.Help;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
@@ -14,7 +17,7 @@ import de.xzise.MinecraftUtil;
 import de.xzise.wrappers.help.HelpAPI;
 import de.xzise.wrappers.help.TKellyHelpPlugin;
 
-public class CommonCommandMap implements CommandMap {
+public class CommonCommandMap implements CommandMap, CommandExecutor {
 
     private Map<String, SubCommand> subCommandsMap;
     private List<SubCommand> subCommandsList;
@@ -35,7 +38,7 @@ public class CommonCommandMap implements CommandMap {
         this.helper = null;
     }
 
-    public void populate(List<SubCommand> subCommands) {
+    public void populate(Collection<SubCommand> subCommands) {
         this.subCommandsList.addAll(subCommands);
         for (SubCommand subCommand : subCommands) {
             for (String text : subCommand.getCommands()) {
@@ -54,14 +57,18 @@ public class CommonCommandMap implements CommandMap {
     public void setDefault(SubCommand defaultCommand) {
         this.defaultCommand = defaultCommand;
     }
-    
+
+    private boolean executeDefault(CommandSender sender, String[] parameters) {
+        if (this.defaultCommand != null && this.defaultCommand.execute(sender, parameters)) {
+            return true;
+        } else {
+            return this.helper.execute(sender, parameters);
+        }
+    }
+
     public boolean executeCommand(CommandSender sender, String[] parameters) {
         if (parameters.length == 0) {
-            if (!this.defaultCommand.execute(sender, parameters)) {
-                return this.helper.execute(sender, parameters);
-            } else {
-                return true;
-            }
+            return this.executeDefault(sender, parameters);
         } else {
             SubCommand command = this.subCommandsMap.get(parameters[0]);
             if (command != null) {
@@ -74,7 +81,7 @@ public class CommonCommandMap implements CommandMap {
                     return false;
                 }
             } else {
-                return this.defaultCommand.execute(sender, parameters);
+                return this.executeDefault(sender, parameters);
             }
         }
     }
@@ -107,6 +114,20 @@ public class CommonCommandMap implements CommandMap {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        StringBuilder line = new StringBuilder();
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i];
+            line.append(arg);
+            if (i < args.length - 1) {
+                line.append(' ');
+            }
+        }
+        
+        return this.executeCommand(sender, MinecraftUtil.parseLine(line.toString()));
     }
 
 }

@@ -9,22 +9,24 @@ public class XLogger {
 
     private final Logger logger;
     private final String pluginName;
+    private final String version;
 
     public XLogger(String loggerName, String pluginName) {
-        this(Logger.getLogger(loggerName), pluginName);
+        this(Logger.getLogger(loggerName), pluginName, "");
     }
 
     public XLogger(String pluginName) {
         this("Minecraft", pluginName);
     }
     
-    private XLogger(Logger logger, String pluginName) {
+    private XLogger(Logger logger, String pluginName, String version) {
         this.logger = logger;
         this.pluginName = pluginName;
+        this.version = version;
     }
 
     public XLogger(Plugin plugin) {
-        this(plugin.getServer().getLogger(), plugin.getDescription().getName());
+        this(plugin.getServer().getLogger(), plugin.getDescription().getName(), plugin.getDescription().getVersion());
     }
 
     private String formatMessage(String message) {
@@ -53,6 +55,14 @@ public class XLogger {
 
     public void warning(String msg, Throwable exception) {
         this.log(Level.WARNING, msg, exception);
+    }
+    
+    public void enableMsg() {
+        this.info(this.pluginName + (MinecraftUtil.isSet(this.version) ? " " : "") + this.version + " enabled");
+    }
+    
+    public void disableMsg() {
+        this.info(this.pluginName + (MinecraftUtil.isSet(this.version) ? " " : "") + this.version + " disabled");
     }
 
 }

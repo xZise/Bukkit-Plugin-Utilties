@@ -1,7 +1,7 @@
 package de.xzise.wrappers.permissions;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.bukkit.command.CommandSender;
@@ -14,8 +14,9 @@ import de.xzise.wrappers.Handler;
 
 public class PermissionsHandler extends Handler<PermissionsWrapper> {
 
+    private static final String[] EMPTY_STRING_ARRAY = new String[0];
+
     public static final Map<String, Factory<PermissionsWrapper>> FACTORIES = new HashMap<String, Factory<PermissionsWrapper>>();
-    private static final DefaultPermissions DEFAULT_PERMISSIONS = new DefaultPermissions();
     private static final PermissionsWrapper NULLARY_PERMISSIONS = new PermissionsWrapper() {
         
         @Override
@@ -34,7 +35,7 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         }
 
         @Override
-        public String getGroup(String world, String player) {
+        public String[] getGroup(String world, String player) {
             return null;
         }
 
@@ -45,7 +46,7 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     };
     
     static {
-        FACTORIES.put("Permissions", new PermissionsPluginWrapper.PermissionsPluginFactory());
+        FACTORIES.put("Permissions", new PermissionPluginWrapperFactory());
     }
 
     public PermissionsHandler(PluginManager pluginManager, String plugin, XLogger logger) {
@@ -57,7 +58,23 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         if (result != null) {
             return result;
         } else {
-            return DEFAULT_PERMISSIONS.has(sender, permission);
+            if (permission instanceof SuperPerm) {
+                try {
+                    return sender.hasPermission(permission.getName());
+                } catch (NoSuchMethodError e) {
+                    return hasByDefault(sender, permission.getDefault());
+                }
+            } else {
+                return hasByDefault(sender, permission.getDefault());
+            }
+        }
+    }
+
+    private static boolean hasByDefault(CommandSender sender, Boolean def) {
+        if (def != null && def == true) {
+            return true;
+        } else {
+            return sender.isOp();
         }
     }
 
@@ -65,8 +82,8 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     public boolean permissionOr(CommandSender sender, Permission<Boolean> p1, Permission<Boolean> p2) {
         return this.permission(sender, p1) || this.permission(sender, p2);
     }
-    
-    public boolean permissionOr(CommandSender sender, List<Permission<Boolean>> permissions) {
+
+    public boolean permissionOr(CommandSender sender, Collection<? extends Permission<Boolean>> permissions) {
         for (Permission<Boolean> permission : permissions) {
             if (this.permission(sender, permission)) {
                 return true;
@@ -80,21 +97,22 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         if (result != null) {
             return result;
         } else {
-            return DEFAULT_PERMISSIONS.getInteger(sender, permission);
+            return permission.getDefault();
         }
     }
-    
+
     public double getDouble(CommandSender sender, Permission<Double> permission) {
         Double result = this.getWrapper().getDouble(sender, permission);
         if (result != null) {
             return result;
         } else {
-            return DEFAULT_PERMISSIONS.getDouble(sender, permission);
+            return permission.getDefault();
         }
     }
 
-    public String getGroup(String world, String player) {
-        return this.getWrapper().getGroup(world, player);
+    public String[] getGroup(String world, String player) {
+        String[] groups = this.getWrapper().getGroup(world, player);
+        return groups == null ? EMPTY_STRING_ARRAY : groups;
     }
     
 }

@@ -40,7 +40,7 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
             return null;
         }
     }
-
+    
     @Override
     public Double getDouble(CommandSender sender, Permission<Double> permission) {
         Player player = MinecraftUtil.getPlayer(sender);
@@ -57,8 +57,8 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
     }
     
     @Override
-    public String getGroup(String world, String player) {
-        return this.handler.getGroup(world, player);
+    public String[] getGroup(String world, String player) {
+        return new String[] { this.handler.getGroup(world, player) };
     }
     
     public PermissionsPluginWrapper(Permissions plugin) {
@@ -69,18 +69,4 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
     public Plugin getPlugin() {
         return this.plugin;
     }
-    
-    public static class PermissionsPluginFactory implements Factory<PermissionsWrapper> {
-
-        @Override
-        public PermissionsWrapper create(Plugin plugin, XLogger logger) {
-            if (plugin instanceof Permissions) {
-                return new PermissionsPluginWrapper((Permissions) plugin);
-            } else {
-                return null;
-            }
-        }
-        
-    }
-
 }

@@ -30,15 +30,16 @@ public class CommonHelpCommand extends CommonHelpableSubCommand implements HelpC
         for (String string : helpable.getFullHelpText()) {
             lines.add(string);
         }
-        if (this.commands.length > 1) {
-            String aliases = "Aliases: ";
-            for (int i = 1; i < helpable.getCommands().length; i++) {
-                aliases += ChatColor.GREEN + this.commands[i];
-                if (i < this.commands.length - 1) {
-                    aliases += ChatColor.WHITE + ", ";
+        String[] aliases = helpable.getCommands();
+        if (aliases.length > 1) {
+            String aliasString = "Aliases: ";
+            for (int i = 1; i < aliases.length; i++) {
+                aliasString += ChatColor.GREEN + aliases[i];
+                if (i < aliases.length - 1) {
+                    aliasString += ChatColor.WHITE + ", ";
                 }
             }
-            lines.add(aliases);
+            lines.add(aliasString);
         }
         return lines.toArray(new String[0]);
     }

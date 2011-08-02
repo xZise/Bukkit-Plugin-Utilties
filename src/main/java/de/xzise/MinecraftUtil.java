@@ -6,19 +6,31 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginManager;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 
 import de.xzise.metainterfaces.ConsoleCommandWrapper;
 import de.xzise.metainterfaces.LinesCountable;
 import de.xzise.metainterfaces.Nameable;
 import de.xzise.metainterfaces.CommandSenderWrapper;
+import de.xzise.wrappers.permissions.Permission;
+import de.xzise.wrappers.permissions.SuperPerm;
 
 public final class MinecraftUtil {
 
@@ -75,24 +87,72 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Returns a name in each case. If the sender is a player it return the
-     * player name. If the sender is the console it will return
-     * <code>[SERVER]</code>. In all other cases it return <code>Somebody</code>
-     * .
+     * Returns a name in each case.
+     * <ul>
+     * <li>If the sender is a player it return the player name.</li>
+     * <li>If the sender is the console it will return <code>[CONSOLE]</code>.</li>
+     * <li>If the sender is Nameable it return this name.</li>
+     * <li>In all other cases it return <code>Somebody</code>.</li>
+     * </ul>
      * 
      * @param sender
      *            The name of this sender will be determined.
      * @return The name of the sender.
      */
     public static String getName(CommandSender sender) {
+        return getName(sender, "Somebody");
+    }
+
+    /**
+     * Returns a name in each case.
+     * <ul>
+     * <li>If the sender is a player it return the player name.</li>
+     * <li>If the sender is the console it will return <code>[CONSOLE]</code>.</li>
+     * <li>If the sender is Nameable it return this name.</li>
+     * <li>In all other cases it will return the value of <code>somebody</code>.
+     * </li>
+     * </ul>
+     * 
+     * @param sender
+     *            The name of this sender will be determined.
+     * @param somebody
+     *            The name of the sender, if it isn't a player, nameable and no
+     *            console.
+     * @return The name of the sender.
+     */
+    public static String getName(CommandSender sender, String somebody) {
+        return getName(sender, ConsoleCommandWrapper.NAME, somebody);
+    }
+
+    /**
+     * Returns a name in each case.
+     * <ul>
+     * <li>If the sender is a player it return the player name.</li>
+     * <li>If the sender is the console it will return the value of
+     * <code>console</code>.</li>
+     * <li>If the sender is Nameable it return this name.</li>
+     * <li>In all other cases it will return the value of <code>somebody</code>.
+     * </li>
+     * </ul>
+     * 
+     * @param sender
+     *            The name of this sender will be determined.
+     * @param console
+     *            The name of the sender, if it is a console.
+     * @param somebody
+     *            The name of the sender, if it isn't a player, nameable and no
+     *            console.
+     * @return The name of the sender.
+     */
+    public static String getName(CommandSender sender, String console, String somebody) {
         String name = MinecraftUtil.getPlayerName(sender);
         if (name == null) {
             if (sender instanceof ConsoleCommandSender) {
-                return ConsoleCommandWrapper.NAME;
+                return console;
             } else if (sender instanceof Nameable) {
                 return ((Nameable) sender).getName();
             } else {
-                return "Somebody";
+                return somebody;
             }
         } else {
             return name;
@@ -116,6 +176,67 @@ public final class MinecraftUtil {
         return player == null ? name : player.getName();
     }
 
+    /**
+     * Expands the name, so it match a player (if possible).
+     * 
+     * @param name
+     *            The primitive name.
+     * @return The name of a player on the server, if the name matches anything.
+     *         Otherwise the inputed name.
+     * @see Call {@link #expandName(String, Server)} where the server is {@link Bukkit#getServer()}.
+     */
+    public static String expandName(String name) {
+        return expandName(name, Bukkit.getServer());
+    }
+
+    public static <T> T cast(Class<T> clazz, Object o, T def) {
+        try {
+            return clazz.cast(o);
+        } catch (ClassCastException e) {
+            return def;
+        }
+    }
+    
+    public static <T> T cast(Class<T> clazz, Object o) {
+        return cast(clazz, o, null);
+    }
+
+    //TODO: Support logger
+    public static void register(PluginManager pluginManager, XLogger logger, SuperPerm... perms) {
+        register(pluginManager, logger, perms);
+    }
+
+    //TODO: Support logger
+    public static void register(PluginManager pluginManager, XLogger logger, SuperPerm[]... perms) {
+        try {
+            for (SuperPerm[] superPerms : perms) {
+                for (SuperPerm superPerm : superPerms) {
+                    try {
+                        pluginManager.addPermission(new org.bukkit.permissions.Permission(superPerm.getName(), superPerm.getDescription(), superPerm.getPermissionDefault()));
+                    } catch (IllegalArgumentException e) {
+                        logger.warning("Couldn't register the permission '" + superPerm.getName() + "'!", e);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warning("SuperPerms not found, didn't register permissions.", e);
+        }
+    }
+    
+    public static <T> ImmutableSet<Permission<T>> getByDefault(T def, Permission<T>... permissions) {
+        Builder<Permission<T>> builder = ImmutableSet.builder();
+        for (Permission<T> permission : permissions) {
+            if (equals(permission.getDefault(), def)) {
+                builder.add(permission);
+            }
+        }
+        return builder.build();
+    }
+
+    public static boolean equals(Object o, Object p) {
+        return o == null ? p == null : o.equals(p);
+    }
+    
     public static String[] parseLine(String line) {
         return MinecraftUtil.parseLine(line, ' ');
     }
@@ -202,6 +323,17 @@ public final class MinecraftUtil {
      * Java specific
      */
 
+    public static <T> T[] concat(T t, T... ts) {
+        int newLength = ts.length + 1;
+        @SuppressWarnings("unchecked")
+        T[] completed = ((Object) ts.getClass() == (Object) Object[].class) ? (T[]) new Object[newLength] : (T[]) Array.newInstance(ts.getClass().getComponentType(), newLength);
+        completed[0] = t;
+        for (int i = 0; i < ts.length; i++) {
+            completed[i + 1] = ts[i];
+        }
+        return completed;
+    }
+
     /**
      * Checks if an object is set. Set mean at least “not null”. Following
      * objects will be checked separate:
@@ -217,8 +349,12 @@ public final class MinecraftUtil {
      * <td>not <tt>{@link String#isEmpty()}</tt></td>
      * </tr>
      * <tr>
-     * <td>List&lt;?&gt;</td>
-     * <td><tt>{@link List#size()} > 0</tt></td>
+     * <td>Collection&lt;?&gt;</td>
+     * <td>not <tt>{@link Collection#isEmpty()}</tt></td>
+     * </tr>
+     * <tr>
+     * <td>Map&lt;?, ?&gt;</td>
+     * <td>not <tt>{@link Map#isEmpty()}</tt></td>
      * </tr>
      * <tr>
      * <td>Any array</td>
@@ -237,8 +373,10 @@ public final class MinecraftUtil {
         }
         if (o instanceof String) {
             return !((String) o).isEmpty();
-        } else if (o instanceof List<?>) {
-            return !((List<?>) o).isEmpty();
+        } else if (o instanceof Collection<?>) {
+            return !((Collection<?>) o).isEmpty();
+        } else if (o instanceof Map<?, ?>) {
+            return !((Map<?, ?>) o).isEmpty();
         } else if (o.getClass().isArray()) {
             return java.lang.reflect.Array.getLength(o) > 0;
         } else {
@@ -352,8 +490,28 @@ public final class MinecraftUtil {
         }
     }
     
-    public static double getComma(double value) {
-        return Math.abs(value - Math.floor(value));
+    /**
+     * Tries to convert a string into a short. If the string is invalid it
+     * returns <code>null</code>.
+     * 
+     * @param string
+     *            The string to be parsed.
+     * @return The value if the string is valid, otherwise <code>null</code>.
+     */
+    public static Double tryAndGetDouble(String string) {
+        try {
+            return Double.parseDouble(string);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+    
+    public static long trunc(double value) {
+        return (long) value;
+    }
+    
+    public static double getDecimalPlaces(double value) {
+        return Math.abs(value - trunc(value));
     }
 
     /**
@@ -381,8 +539,11 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Returns a random value of the list. If the list is not set ({@link #isSet(Object)}) it will return null.
-     * @param list The given list.
+     * Returns a random value of the list. If the list is not set (
+     * {@link #isSet(Object)}) it will return null.
+     * 
+     * @param list
+     *            The given list.
      * @return a random element of the list.
      */
     public static <T> T getRandom(List<T> list) {
@@ -392,10 +553,13 @@ public final class MinecraftUtil {
             return null;
         }
     }
-    
+
     /**
-     * Returns a random value of the array. If the array is not set ({@link #isSet(Object)}) it will return null.
-     * @param list The given list.
+     * Returns a random value of the array. If the array is not set (
+     * {@link #isSet(Object)}) it will return null.
+     * 
+     * @param list
+     *            The given list.
      * @return a random element of the list.
      */
     public static <T> T getRandom(T[] array) {
@@ -479,5 +643,66 @@ public final class MinecraftUtil {
 
     public static boolean isInteger(String string) {
         return MinecraftUtil.tryAndGetInteger(string) != null;
+    }
+
+    public static <T> T[] subArray(T[] t, int start, int len) {
+        if (start == 0) {
+            return t.clone();
+        } else if (start < 0 || start >= t.length) {
+            throw new IndexOutOfBoundsException("Start index is out of the bount (" + start + ").");
+        } else {
+            @SuppressWarnings("unchecked")
+            T[] newArray = (T[]) new Object[len];
+
+            System.arraycopy(t, start, newArray, 0, Math.min(t.length, newArray.length));
+            
+            return newArray;
+        }
+    }
+    
+    public static <T> T[] subArray(T[] t, int start) {
+        return subArray(t, start, t.length - start);
+    }
+    
+    public static <K, V extends Enum<?>> Map<K, V> createEnumMap(Class<V> enumClass, Callback<K, ? super V> keys) {
+        Map<K, V> m = new HashMap<K, V>();
+        
+        for (V enumValue : enumClass.getEnumConstants()) {
+            m.put(keys.call(enumValue), enumValue);
+        }
+        return m;
+    }
+    
+    public static <K, V extends Enum<?>> Map<K, V> createReverseMultiEnumMap(Class<V> enumClass, Callback<K[], ? super V> keys) {
+        Map<K, V> m = new HashMap<K, V>();
+        
+        for (V enumValue : enumClass.getEnumConstants()) {
+            for (K key : keys.call(enumValue)) {
+                m.put(key, enumValue);
+            }
+        }
+        return m;
+    }
+
+    /* 
+     * Shorten List/Set/Map constructors (without generic type duplication).
+     * This is basically inspired by Google Guava.
+     * 
+     * See also: http://code.google.com/p/guava-libraries/source/browse/trunk/guava/src/com/google/common/collect/Lists.java
+     */
+    public static <K, V> HashMap<K, V> createHashMap() {
+        return new HashMap<K, V>();
+    }
+
+    public static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Class<K> keyType) {
+        return new EnumMap<K, V>(keyType);
+    }
+    
+    public static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Map<K, V> map, Class<K> keyType) {
+        if (map == null) {
+            return new EnumMap<K, V>(keyType);
+        } else {
+            return new EnumMap<K, V>(map);
+        }
     }
 }

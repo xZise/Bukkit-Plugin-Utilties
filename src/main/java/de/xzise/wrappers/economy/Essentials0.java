@@ -8,18 +8,21 @@ import com.earth2me.essentials.api.UserDoesNotExistException;
 
 import de.xzise.XLogger;
 
-public class Essentials implements EconomyWrapper {
+public class Essentials0 implements EconomyWrapper {
 
     private final Plugin economy;
     private final XLogger logger;
 
     public final class EssentialsAccount implements AccountWrapper {
         private final String name;
-        private final XLogger logger;
 
         public EssentialsAccount(String name, XLogger logger) {
             this.name = name;
-            this.logger = logger;
+//            if (!Economy.playerExists(name)) {
+//                if (!Economy.(name)) {
+//                    logger.warning("EssentialsAccount: Couldn't create a new account named \"" + name + "\"!");
+//                }
+//            }
         }
 
         @Override
@@ -27,7 +30,8 @@ public class Essentials implements EconomyWrapper {
             try {
                 return Economy.hasEnough(this.name, price);
             } catch (UserDoesNotExistException e) {
-                this.logger.warning("Unable to check if the user " + this.name + " has enough, because the user doesn't exists.");
+                System.out.println("udnee has");
+                // eat
                 return false;
             }
         }
@@ -37,14 +41,16 @@ public class Essentials implements EconomyWrapper {
             try {
                 Economy.add(this.name, price);
             } catch (UserDoesNotExistException e) {
-                this.logger.warning("Unable to change the price of " + this.name + ", because the user doesn't exists.");                
+                System.out.println("udnee add");
+                // eat
             } catch (NoLoanPermittedException e) {
-                this.logger.warning("Unable to change the price of " + this.name + ", because the loan was permitted.");
+                System.out.println("nlpe add");
+                // eat
             }
         }
     }
 
-    public Essentials(Plugin plugin, XLogger logger) {
+    public Essentials0(Plugin plugin, XLogger logger) {
         this.economy = plugin;
         this.logger = logger;
     }
@@ -69,7 +75,7 @@ public class Essentials implements EconomyWrapper {
         @Override
         public EconomyWrapper create(Plugin plugin, XLogger logger) {
             if (plugin instanceof com.earth2me.essentials.Essentials) {
-                Essentials buf = new Essentials(plugin, logger);
+                Essentials0 buf = new Essentials0(plugin, logger);
                 try {
                     buf.format(0);
                     return buf;

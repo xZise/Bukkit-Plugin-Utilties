@@ -37,7 +37,7 @@ public class Permissions3Wrapper implements PermissionsWrapper {
             return null;
         }
     }
-    
+
     private <T> T getValue(CommandSender sender, EntryVisitor<T> visitor) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
@@ -54,7 +54,7 @@ public class Permissions3Wrapper implements PermissionsWrapper {
     
     @Override
     public Integer getInteger(CommandSender sender, Permission<Integer> permission) {
-        return this.getValue(sender, Permissions3Legacy.getIntVisitor(permission.getName(), this.logger));
+        return this.getValue(sender, new Entry.IntegerInfoVisitor(permission.getName()));
     }
 
     @Override

@@ -2,7 +2,7 @@ package de.xzise.wrappers.permissions;
 
 import com.nijiko.permissions.Entry;
 import com.nijiko.permissions.Entry.IntegerInfoVisitor;
-//import com.nijiko.permissions.Entry.DoubleInfoVisitor;
+import com.nijiko.permissions.Entry.DoubleInfoVisitor;
 import com.nijiko.permissions.Entry.EntryVisitor;
 
 import de.xzise.XLogger;
@@ -20,8 +20,7 @@ public class Permissions3Legacy {
     
     public static EntryVisitor<Double> getDoubleVisitor(String name, XLogger logger) {
         try {
-//            return new DoubleInfoVisitor(name);
-            return new DoubleVisitor(name);
+            return new DoubleInfoVisitor(name);
         } catch (NoClassDefFoundError e) {
             logger.info("You are maybe using a outdated version of Permissions.");
             return new DoubleVisitor(name);

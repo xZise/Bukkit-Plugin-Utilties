@@ -54,7 +54,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     }
 
     public boolean permission(CommandSender sender, Permission<Boolean> permission) {
-        Boolean result = this.getWrapper().has(sender, permission);
+        Boolean result;
+        try {
+            result = this.getWrapper().has(sender, permission);
+        } catch (UnsupportedOperationException e) {
+            result = null;
+            this.logger.info("PermissionsManager permission check wasn't supported by this plugin.");
+        }
         if (result != null) {
             return result;
         } else {
@@ -93,7 +99,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     }
 
     public int getInteger(CommandSender sender, Permission<Integer> permission) {
-        Integer result = this.getWrapper().getInteger(sender, permission);
+        Integer result;
+        try {
+            result = this.getWrapper().getInteger(sender, permission);
+        } catch (UnsupportedOperationException e) {
+            result = null;
+            this.logger.info("PermissionsManager integer getter wasn't supported by this plugin.");
+        }
         if (result != null) {
             return result;
         } else {
@@ -102,7 +114,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     }
 
     public double getDouble(CommandSender sender, Permission<Double> permission) {
-        Double result = this.getWrapper().getDouble(sender, permission);
+        Double result;
+        try {
+            result = this.getWrapper().getDouble(sender, permission);
+        } catch (UnsupportedOperationException e) {
+            result = null;
+            this.logger.info("PermissionsManager double getter wasn't supported by this plugin.");
+        }
         if (result != null) {
             return result;
         } else {
@@ -111,7 +129,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     }
 
     public String[] getGroup(String world, String player) {
-        String[] groups = this.getWrapper().getGroup(world, player);
+        String[] groups;
+        try {
+            groups = this.getWrapper().getGroup(world, player);
+        } catch (UnsupportedOperationException e) {
+            groups = null;
+            this.logger.info("PermissionsManager group getter wasn't supported by this plugin.");
+        }
         return groups == null ? EMPTY_STRING_ARRAY : groups;
     }
     

@@ -22,6 +22,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 
@@ -203,7 +204,7 @@ public final class MinecraftUtil {
 
     //TODO: Support logger
     public static void register(PluginManager pluginManager, XLogger logger, SuperPerm... perms) {
-        register(pluginManager, logger, perms);
+        register(pluginManager, logger, new SuperPerm[][] { perms });
     }
 
     //TODO: Support logger
@@ -222,7 +223,7 @@ public final class MinecraftUtil {
             logger.warning("SuperPerms not found, didn't register permissions.", e);
         }
     }
-    
+
     public static <T> ImmutableSet<Permission<T>> getByDefault(T def, Permission<T>... permissions) {
         Builder<Permission<T>> builder = ImmutableSet.builder();
         for (Permission<T> permission : permissions) {
@@ -663,16 +664,34 @@ public final class MinecraftUtil {
     public static <T> T[] subArray(T[] t, int start) {
         return subArray(t, start, t.length - start);
     }
-    
+
+    /**
+     * Creates an map, mapping an identifier to all values of an enum.
+     * @param enumClass The class of the enum.
+     * @param keys The callback class defining a name for each enum.
+     * @return A map mapping an identifier to an enum.
+     * @deprecated Use {@link #createReverseEnumMap(Class, Callback)} instead.
+     */
+    @Deprecated
     public static <K, V extends Enum<?>> Map<K, V> createEnumMap(Class<V> enumClass, Callback<K, ? super V> keys) {
-        Map<K, V> m = new HashMap<K, V>();
+        return createReverseEnumMap(enumClass, keys);
+    }
+
+    /**
+     * Creates an map, mapping an identifier to all values of an enum.
+     * @param enumClass The class of the enum.
+     * @param keys The callback class defining a name for each enum.
+     * @return A map mapping an identifier to an enum.
+     */
+    public static <K, V extends Enum<?>> ImmutableMap<K, V> createReverseEnumMap(Class<V> enumClass, Callback<K, ? super V> keys) {
+        com.google.common.collect.ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
         
         for (V enumValue : enumClass.getEnumConstants()) {
-            m.put(keys.call(enumValue), enumValue);
+            builder.put(keys.call(enumValue), enumValue);
         }
-        return m;
+        return builder.build();
     }
-    
+
     public static <K, V extends Enum<?>> Map<K, V> createReverseMultiEnumMap(Class<V> enumClass, Callback<K[], ? super V> keys) {
         Map<K, V> m = new HashMap<K, V>();
         

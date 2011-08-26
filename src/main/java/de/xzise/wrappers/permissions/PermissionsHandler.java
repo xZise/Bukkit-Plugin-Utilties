@@ -43,10 +43,21 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         public Double getDouble(CommandSender sender, Permission<Double> permission) {
             return null;
         }
+
+        @Override
+        public String getString(CommandSender sender, Permission<String> permission, boolean recursive) {
+            return null;
+        }
+
+        @Override
+        public String getString(String groupname, String world, Permission<String> permission) {
+            return null;
+        }
     };
     
     static {
         FACTORIES.put("Permissions", new PermissionPluginWrapperFactory());
+        FACTORIES.put("PermissionsBukkit", new PermissionsBukkitWrapper.FactoryImpl());
     }
 
     public PermissionsHandler(PluginManager pluginManager, String plugin, XLogger logger) {
@@ -120,6 +131,44 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         } catch (UnsupportedOperationException e) {
             result = null;
             this.logger.info("PermissionsManager double getter wasn't supported by this plugin.");
+        }
+        if (result != null) {
+            return result;
+        } else {
+            return permission.getDefault();
+        }
+    }
+    
+    public String getString(CommandSender sender, Permission<String> permission) {
+        return this.getString(sender, permission, true);
+    }
+    
+    public String getUserString(CommandSender sender, Permission<String> permission) {
+        return this.getString(sender, permission, false);
+    }
+    
+    private String getString(CommandSender sender, Permission<String> permission, boolean recursive) {
+        String result;
+        try {
+            result = this.getWrapper().getString(sender, permission, recursive);
+        } catch (UnsupportedOperationException e) {
+            result = null;
+            this.logger.info("PermissionsManager string getter wasn't supported by this plugin.");
+        }
+        if (result != null) {
+            return result;
+        } else {
+            return permission.getDefault();
+        }
+    }
+    
+    public String getString(String world, String groupname, Permission<String> permission) {
+        String result;
+        try {
+            result = this.getWrapper().getString(groupname, null, permission);
+        } catch (UnsupportedOperationException e) {
+            result = null;
+            this.logger.info("PermissionsManager string getter wasn't supported by this plugin.");
         }
         if (result != null) {
             return result;

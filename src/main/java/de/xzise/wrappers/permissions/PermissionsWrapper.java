@@ -13,5 +13,9 @@ public interface PermissionsWrapper extends Wrapper {
     Double getDouble(CommandSender sender, Permission<Double> permission);
 
     String[] getGroup(String world, String player);
+
+    String getString(CommandSender sender, Permission<String> permission, boolean recursive);
+
+    String getString(String groupname, String world, Permission<String> permission);
     
 }

@@ -25,12 +25,17 @@ public class BOSEcon0 implements EconomyWrapper {
         
         @Override
         public boolean hasEnough(double price) {
-            return this.economy.getPlayerMoney(this.name) >= price;
+            return this.getBalance() >= price;
         }
 
         @Override
         public void add(double price) {
             this.economy.addPlayerMoney(this.name, (int) Math.round(price), false);
+        }
+
+        @Override
+        public double getBalance() {
+            return this.economy.getPlayerMoney(this.name);
         }
         
     }

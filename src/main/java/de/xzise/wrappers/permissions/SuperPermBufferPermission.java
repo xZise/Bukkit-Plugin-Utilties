@@ -2,7 +2,7 @@ package de.xzise.wrappers.permissions;
 
 import org.bukkit.permissions.PermissionDefault;
 
-public class SuperPermBufferPermission extends BufferPermission implements SuperPerm {
+public class SuperPermBufferPermission extends BufferPermission<Boolean> implements SuperPerm {
 
     public final String description;
 

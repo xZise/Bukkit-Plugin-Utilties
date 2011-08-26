@@ -27,6 +27,11 @@ public class MethodWrapper implements EconomyWrapper {
         public void add(double price) {
             this.method.add(price);
         }
+
+        @Override
+        public double getBalance() {
+            return this.method.balance();
+        }
         
     }
     

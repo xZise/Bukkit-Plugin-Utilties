@@ -7,6 +7,7 @@ package de.xzise.wrappers.economy;
 public interface AccountWrapper {
 
     boolean hasEnough(double price);
+    double getBalance();
     void add(double price);
     
 }

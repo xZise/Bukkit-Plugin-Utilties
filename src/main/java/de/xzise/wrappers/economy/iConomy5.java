@@ -25,6 +25,11 @@ public class iConomy5 implements EconomyWrapper {
             this.account.getHoldings().add(price);
         }
 
+        @Override
+        public double getBalance() {
+            return this.account.getHoldings().balance();
+        }
+
     }
 
     private final Plugin plugin;

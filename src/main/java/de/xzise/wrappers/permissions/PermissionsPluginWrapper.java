@@ -8,8 +8,6 @@ import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
 import de.xzise.MinecraftUtil;
-import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
 
 public class PermissionsPluginWrapper implements PermissionsWrapper {
 
@@ -30,6 +28,7 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
     public Integer getInteger(CommandSender sender, Permission<Integer> permission) {
         Player player = MinecraftUtil.getPlayer(sender);
         if (player != null) {
+            @SuppressWarnings("deprecation")
             int i = this.handler.getPermissionInteger(player.getWorld().getName(), player.getName(), permission.getName());
             if (i < 0) {
                 return null;
@@ -45,6 +44,7 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
     public Double getDouble(CommandSender sender, Permission<Double> permission) {
         Player player = MinecraftUtil.getPlayer(sender);
         if (player != null) {
+            @SuppressWarnings("deprecation")
             double i = this.handler.getPermissionDouble(player.getWorld().getName(), player.getName(), permission.getName());
             if (i < 0) {
                 return null;
@@ -56,6 +56,7 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
         }
     }
     
+    @SuppressWarnings("deprecation")
     @Override
     public String[] getGroup(String world, String player) {
         return new String[] { this.handler.getGroup(world, player) };
@@ -68,5 +69,26 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
     @Override
     public Plugin getPlugin() {
         return this.plugin;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public String getString(CommandSender sender, Permission<String> permission, boolean recursive) {
+        Player player = MinecraftUtil.getPlayer(sender);
+        if (player != null) {
+            if (recursive) {
+                return this.handler.getUserPermissionString(player.getWorld().getName(), player.getName(), permission.getName());
+            } else {
+                return this.handler.getPermissionString(player.getWorld().getName(), player.getName(), permission.getName());
+            }
+        } else {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public String getString(String groupname, String world, Permission<String> permission) {
+        return this.handler.getGroupPermissionString(world, groupname, permission.getName());
     }
 }

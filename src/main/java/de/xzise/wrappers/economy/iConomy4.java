@@ -28,6 +28,11 @@ public class iConomy4 implements EconomyWrapper {
         public void add(double price) {
             this.account.add(price);
         }
+
+        @Override
+        public double getBalance() {
+            return this.account.getBalance();
+        }
         
     }
     

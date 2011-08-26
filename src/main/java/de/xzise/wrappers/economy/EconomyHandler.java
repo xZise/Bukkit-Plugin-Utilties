@@ -51,6 +51,11 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         
         @Override
         public void add(double price) {}
+
+        @Override
+        public double getBalance() {
+            return 0;
+        }
     };
     
     private AccountWrapper tax = NULLARY_ACCOUNT;
@@ -82,12 +87,8 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
            Player player = MinecraftUtil.getPlayer(sender);
            if (player != null) {
                AccountWrapper executor = this.getAccount(player.getName());
-               if (price + basic == 0) {
-                   return PayResult.PAID;
-               } else
                // Not negative
-               //TODO: Add option if allow
-//               if (executor.getBalance() >= price + basic) {
+               //TODO: Add option if allow not negatives
                if (executor.hasEnough(price + basic)) {    
                    executor.add(-price -basic);
                    this.tax.add(basic);
@@ -103,13 +104,18 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
                this.logger.info("Couldn't pay action, because the executor is not a player.");
            }
         } else if (price > 0) {
-            sender.sendMessage(ChatColor.RED + "You should pay for this warp. But no iConomy found.");
+            sender.sendMessage(ChatColor.RED + "You should pay for this warp. But no economy plugin found.");
         }
         return PayResult.UNABLE;
     }
     
     private final AccountWrapper getAccount(String name) {
         return this.getWrapper().getAccount(name);
+    }
+    
+    public double getBalance(String name) {
+        AccountWrapper acc = getAccount(name);
+        return acc == null ? 0 : acc.getBalance();
     }
     
     public PayResult pay(CommandSender sender, double basic) {

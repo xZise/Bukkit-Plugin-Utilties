@@ -29,6 +29,11 @@ public class MineConomy implements EconomyWrapper {
         public void add(double price) {
             this.bank.add(this.name, price);
         }
+
+        @Override
+        public double getBalance() {
+            return this.bank.getTotal(this.name);
+        }
         
     }
     

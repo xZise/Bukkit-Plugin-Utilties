@@ -42,6 +42,16 @@ public class Essentials implements EconomyWrapper {
                 this.logger.warning("Unable to change the price of " + this.name + ", because the loan was permitted.");
             }
         }
+
+        @Override
+        public double getBalance() {
+            try {
+                return Economy.getMoney(name);
+            } catch (UserDoesNotExistException e) {
+                this.logger.warning("Unable to get the balance from user " + this.name + ", because the user doesn't exists.");
+                return 0;
+            }
+        }
     }
 
     public Essentials(Plugin plugin, XLogger logger) {

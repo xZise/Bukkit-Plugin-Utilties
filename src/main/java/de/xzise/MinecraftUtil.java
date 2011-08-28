@@ -17,6 +17,7 @@ import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
@@ -190,18 +191,6 @@ public final class MinecraftUtil {
         return expandName(name, Bukkit.getServer());
     }
 
-    public static <T> T cast(Class<T> clazz, Object o, T def) {
-        try {
-            return clazz.cast(o);
-        } catch (ClassCastException e) {
-            return def;
-        }
-    }
-    
-    public static <T> T cast(Class<T> clazz, Object o) {
-        return cast(clazz, o, null);
-    }
-
     //TODO: Support logger
     public static void register(PluginManager pluginManager, XLogger logger, SuperPerm... perms) {
         register(pluginManager, logger, new SuperPerm[][] { perms });
@@ -224,6 +213,28 @@ public final class MinecraftUtil {
         }
     }
 
+    /**
+     * <p>Test if the player has ever joined on the given worlds.</p>
+     * <p><b>Warning</b>: This method is using special behavior of CraftBukkit/Minecraft.</p>
+     * @param name Name of the player.
+     * @param worlds Worlds the player has to be. If there are no worlds set, it will test all worlds.
+     * @return If the player has ever joined on the given worlds.
+     */
+    public static boolean playerHasJoined(String name, World... worlds) {
+        if (worlds == null || worlds.length == 0) {
+            worlds = Bukkit.getServer().getWorlds().toArray(new World[0]);
+        }
+        for (World world : worlds) {
+            File playerDirectory = new File(world.getName(), "players");
+            for (String playerName : playerDirectory.list()) {
+                if (playerName.equals(name + ".dat")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static <T> ImmutableSet<Permission<T>> getByDefault(T def, Permission<T>... permissions) {
         Builder<Permission<T>> builder = ImmutableSet.builder();
         for (Permission<T> permission : permissions) {
@@ -234,10 +245,6 @@ public final class MinecraftUtil {
         return builder.build();
     }
 
-    public static boolean equals(Object o, Object p) {
-        return o == null ? p == null : o.equals(p);
-    }
-    
     public static String[] parseLine(String line) {
         return MinecraftUtil.parseLine(line, ' ');
     }
@@ -323,6 +330,22 @@ public final class MinecraftUtil {
     /*
      * Java specific
      */
+
+    public static <T> T cast(Class<T> clazz, Object o, T def) {
+        try {
+            return clazz.cast(o);
+        } catch (ClassCastException e) {
+            return def;
+        }
+    }
+
+    public static <T> T cast(Class<T> clazz, Object o) {
+        return cast(clazz, o, null);
+    }
+
+    public static boolean equals(Object o, Object p) {
+        return o == null ? p == null : o.equals(p);
+    }
 
     public static <T> T[] concat(T t, T... ts) {
         int newLength = ts.length + 1;

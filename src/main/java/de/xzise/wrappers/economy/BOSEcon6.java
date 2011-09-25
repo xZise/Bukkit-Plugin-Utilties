@@ -1,0 +1,58 @@
+package de.xzise.wrappers.economy;
+
+import org.bukkit.plugin.Plugin;
+
+import cosine.boseconomy.BOSEconomy;
+
+public class BOSEcon6 implements EconomyWrapper {
+
+    private BOSEconomy economy;
+    
+    public BOSEcon6(BOSEconomy plugin) {
+        this.economy = plugin;
+    }
+    
+    public final class BOSEAccount implements AccountWrapper {
+
+        private final BOSEconomy economy;
+        private final String name;
+        
+        public BOSEAccount(BOSEconomy economy, String name) {
+            this.economy = economy;
+            this.name = name;
+        }
+        
+        @Override
+        public boolean hasEnough(double price) {
+            return this.getBalance() >= price;
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public void add(double price) {
+            this.economy.addPlayerMoney(this.name, (int) Math.round(price), false);
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public double getBalance() {
+            return this.economy.getPlayerMoney(this.name);
+        }
+        
+    }
+    
+    @Override
+    public AccountWrapper getAccount(String name) {
+        return new BOSEAccount(this.economy, name);
+    }
+
+    @Override
+    public String format(double price) {
+        return null;
+    }
+
+    @Override
+    public Plugin getPlugin() {
+        return this.economy;
+    }
+}

@@ -114,4 +114,9 @@ public class CommandSenderWrapper<T extends CommandSender> implements CommandSen
     public void setOp(boolean value) {
         this.sender.setOp(value);
     }
+
+    @Override
+    public String getName() {
+        return this.sender.getName();
+    }
 }

@@ -8,12 +8,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -26,6 +29,8 @@ import org.bukkit.plugin.PluginManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import de.xzise.metainterfaces.ConsoleCommandWrapper;
 import de.xzise.metainterfaces.LinesCountable;
@@ -42,6 +47,8 @@ public final class MinecraftUtil {
      */
     public static final int MAX_LINES_VISIBLE = PLAYER_LINES_COUNT;
     public static final int CONSOLE_LINES_COUNT = 30;
+
+    public static final double EPSILON = 0.0000001;
 
     private MinecraftUtil() {
     }
@@ -80,11 +87,15 @@ public final class MinecraftUtil {
      *         player.
      */
     public static String getPlayerName(CommandSender sender) {
-        Player p = MinecraftUtil.getPlayer(sender);
-        if (p != null) {
-            return p.getName();
-        } else {
-            return null;
+        try {
+            return sender.getName();
+        } catch (NoSuchMethodError e) {
+            Player p = MinecraftUtil.getPlayer(sender);
+            if (p != null) {
+                return p.getName();
+            } else {
+                return null;
+            }
         }
     }
 
@@ -185,18 +196,19 @@ public final class MinecraftUtil {
      *            The primitive name.
      * @return The name of a player on the server, if the name matches anything.
      *         Otherwise the inputed name.
-     * @see Call {@link #expandName(String, Server)} where the server is {@link Bukkit#getServer()}.
+     * @see Call {@link #expandName(String, Server)} where the server is
+     *      {@link Bukkit#getServer()}.
      */
     public static String expandName(String name) {
         return expandName(name, Bukkit.getServer());
     }
 
-    //TODO: Support logger
+    // TODO: Support logger
     public static void register(PluginManager pluginManager, XLogger logger, SuperPerm... perms) {
         register(pluginManager, logger, new SuperPerm[][] { perms });
     }
 
-    //TODO: Support logger
+    // TODO: Support logger
     public static void register(PluginManager pluginManager, XLogger logger, SuperPerm[]... perms) {
         try {
             for (SuperPerm[] superPerms : perms) {
@@ -213,11 +225,124 @@ public final class MinecraftUtil {
         }
     }
 
+    private static void generate(Set<org.bukkit.permissions.Permission> permissions, Set<String> children, String prefix, String name) {
+        if (children.isEmpty()) {
+            Map<String, Boolean> childrenMap = Maps.newHashMapWithExpectedSize(children.size());
+            for (String child : children) {
+                childrenMap.put(child, true);
+            }
+            permissions.add(new org.bukkit.permissions.Permission(prefix + (prefix.isEmpty() ? "" : ".") + name, childrenMap));
+        }
+    }
+
+    public static org.bukkit.permissions.Permission[] createPermissionPools(SuperPerm[]... permissions) {
+        class Node {
+
+            private final Map<String, Node> nodes = Maps.newHashMap();
+            private final String name;
+            private final SuperPerm endNode;
+
+            public Node(String name, SuperPerm endNode) {
+                this.name = name;
+                this.endNode = endNode;
+            }
+
+            public Node() {
+                this("", null);
+            }
+
+            public Node putAndGet(String name) {
+                return this.putAndGet(name, null);
+            }
+
+            public Node putAndGet(String name, SuperPerm endNode) {
+                Node result = this.nodes.get(name);
+                if (result == null) {
+                    result = new Node(name, endNode);
+                    this.nodes.put(name, result);
+                }
+                return result;
+            }
+
+            private void create(String prefix, Set<String> trueNodes, Set<String> nonOpNodes, Set<String> opNodes, Set<String> falseNodes, Set<String> allNodes, Set<org.bukkit.permissions.Permission> permissions) {
+                Set<String> trueSubNodes = Sets.newHashSet();
+                Set<String> nonOpSubNodes = Sets.newHashSet();
+                Set<String> opSubNodes = Sets.newHashSet();
+                Set<String> falseSubNodes = Sets.newHashSet();
+                Set<String> allSubNodes = Sets.newHashSet();
+                final String fullName = prefix + (prefix.isEmpty() ? "" : ".") + this.name;
+
+                for (Node node : nodes.values()) {
+                    node.create(fullName, trueSubNodes, nonOpSubNodes, opSubNodes, falseSubNodes, allSubNodes, permissions);
+                }
+
+                generate(permissions, trueSubNodes, fullName, "true");
+                generate(permissions, nonOpSubNodes, fullName, "notop");
+                generate(permissions, opSubNodes, fullName, "op");
+                generate(permissions, falseSubNodes, fullName, "false");
+                generate(permissions, allSubNodes, fullName, "all");
+
+                if (this.endNode != null) {
+                    switch (this.endNode.getPermissionDefault()) {
+                    case TRUE :
+                        trueNodes.add(fullName);
+                        break;
+                    case NOT_OP :
+                        nonOpNodes.add(fullName);
+                        break;
+                    case OP :
+                        opNodes.add(fullName);
+                        break;
+                    case FALSE :
+                        falseNodes.add(fullName);
+                        break;
+                    }
+                    allNodes.add(fullName);
+                }
+            }
+
+            public org.bukkit.permissions.Permission[] create() {
+                Set<org.bukkit.permissions.Permission> permissions = Sets.newHashSet();
+                this.create("", new HashSet<String>(), new HashSet<String>(), new HashSet<String>(), new HashSet<String>(), new HashSet<String>(), permissions);
+                return permissions.toArray(new org.bukkit.permissions.Permission[0]);
+            }
+        }
+
+        final Node root = new Node();
+
+        // Fill node map
+        for (SuperPerm[] superPerms : permissions) {
+            for (SuperPerm superPerm : superPerms) {
+                String[] segments = superPerm.getName().split("\\.");
+                Node parent = root;
+                for (int i = 0; i < segments.length; i++) {
+                    if (i == segments.length - 1) {
+                        parent = parent.putAndGet(segments[i], superPerm);
+                    } else {
+                        parent = parent.putAndGet(segments[i]);
+                    }
+                }
+            }
+        }
+
+        // Search groups
+        return root.create();
+    }
+
     /**
-     * <p>Test if the player has ever joined on the given worlds.</p>
-     * <p><b>Warning</b>: This method is using special behavior of CraftBukkit/Minecraft.</p>
-     * @param name Name of the player.
-     * @param worlds Worlds the player has to be. If there are no worlds set, it will test all worlds.
+     * <p>
+     * Test if the player has ever joined on the given worlds.
+     * </p>
+     * <p>
+     * <b>Warning</b>: This method is using special behavior of
+     * CraftBukkit/Minecraft.
+     * </p>
+     * 
+     * @param name
+     *            Name of the player.
+     * @param worlds
+     *            Worlds the player has to be. If there are no worlds set, it
+     *            will test all worlds.
      * @return If the player has ever joined on the given worlds.
      */
     public static boolean playerHasJoined(String name, World... worlds) {
@@ -341,6 +466,10 @@ public final class MinecraftUtil {
 
     public static <T> T cast(Class<T> clazz, Object o) {
         return cast(clazz, o, null);
+    }
+
+    public static boolean equals(double a, double b) {
+        return a - EPSILON > b && a + EPSILON < b;
     }
 
     public static boolean equals(Object o, Object p) {
@@ -513,7 +642,7 @@ public final class MinecraftUtil {
             return null;
         }
     }
-    
+
     /**
      * Tries to convert a string into a short. If the string is invalid it
      * returns <code>null</code>.
@@ -529,11 +658,11 @@ public final class MinecraftUtil {
             return null;
         }
     }
-    
+
     public static long trunc(double value) {
         return (long) value;
     }
-    
+
     public static double getDecimalPlaces(double value) {
         return Math.abs(value - trunc(value));
     }
@@ -558,8 +687,66 @@ public final class MinecraftUtil {
         return -1;
     }
 
+    public static <T> T replaceNull(T value, T nullReplacement) {
+        return value == null ? nullReplacement : value;
+    }
+
     public static <T> boolean contains(T o, T[] a) {
         return MinecraftUtil.indexOf(o, a) >= 0;
+    }
+
+    public static interface ChanceElement<T> {
+        public Double getChance();
+
+        public T getElement();
+    }
+
+    public static class DefaultChanceElement<T> implements ChanceElement<T> {
+        private final Double chance;
+        private final T element;
+
+        public DefaultChanceElement(Double chance, T element) {
+            this.chance = chance;
+            this.element = element;
+        }
+
+        public DefaultChanceElement(T element) {
+            this(null, element);
+        }
+
+        @Override
+        public Double getChance() {
+            return this.chance;
+        }
+
+        @Override
+        public T getElement() {
+            return this.element;
+        }
+    }
+
+    public static <T> T getRandomFromChances(List<ChanceElement<T>> chances) {
+        if (MinecraftUtil.isSet(chances)) {
+            // Cumulate chances
+            final double defChance = 1.0 / chances.size();
+            double totalchance = 0;
+            for (ChanceElement<T> chanceElement : chances) {
+                totalchance += MinecraftUtil.replaceNull(chanceElement.getChance(), defChance);
+            }
+
+            // Determine element
+            double value = Math.random() * totalchance;
+            for (ChanceElement<T> chanceElement : chances) {
+                value -= MinecraftUtil.replaceNull(chanceElement.getChance(), defChance);
+                if (value < 0) {
+                    return chanceElement.getElement();
+                }
+            }
+            // Normally never reached
+            return null;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -679,19 +866,32 @@ public final class MinecraftUtil {
             T[] newArray = (T[]) new Object[len];
 
             System.arraycopy(t, start, newArray, 0, Math.min(t.length, newArray.length));
-            
+
             return newArray;
         }
     }
-    
+
+    /**
+     * Creates a new array, but only with the elements begining at the start.
+     * 
+     * @param t
+     *            array.
+     * @param start
+     *            Start and first element in new array.
+     * @return new array with a new first element.
+     * @deprecated {@link Arrays#copyOf(Object[], int)}
+     */
     public static <T> T[] subArray(T[] t, int start) {
-        return subArray(t, start, t.length - start);
+        return Arrays.copyOf(t, start);
     }
 
     /**
      * Creates an map, mapping an identifier to all values of an enum.
-     * @param enumClass The class of the enum.
-     * @param keys The callback class defining a name for each enum.
+     * 
+     * @param enumClass
+     *            The class of the enum.
+     * @param keys
+     *            The callback class defining a name for each enum.
      * @return A map mapping an identifier to an enum.
      * @deprecated Use {@link #createReverseEnumMap(Class, Callback)} instead.
      */
@@ -702,13 +902,16 @@ public final class MinecraftUtil {
 
     /**
      * Creates an map, mapping an identifier to all values of an enum.
-     * @param enumClass The class of the enum.
-     * @param keys The callback class defining a name for each enum.
+     * 
+     * @param enumClass
+     *            The class of the enum.
+     * @param keys
+     *            The callback class defining a name for each enum.
      * @return A map mapping an identifier to an enum.
      */
     public static <K, V extends Enum<?>> ImmutableMap<K, V> createReverseEnumMap(Class<V> enumClass, Callback<K, ? super V> keys) {
         com.google.common.collect.ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
-        
+
         for (V enumValue : enumClass.getEnumConstants()) {
             builder.put(keys.call(enumValue), enumValue);
         }
@@ -717,7 +920,7 @@ public final class MinecraftUtil {
 
     public static <K, V extends Enum<?>> Map<K, V> createReverseMultiEnumMap(Class<V> enumClass, Callback<K[], ? super V> keys) {
         Map<K, V> m = new HashMap<K, V>();
-        
+
         for (V enumValue : enumClass.getEnumConstants()) {
             for (K key : keys.call(enumValue)) {
                 m.put(key, enumValue);
@@ -726,11 +929,13 @@ public final class MinecraftUtil {
         return m;
     }
 
-    /* 
+    /*
      * Shorten List/Set/Map constructors (without generic type duplication).
      * This is basically inspired by Google Guava.
      * 
-     * See also: http://code.google.com/p/guava-libraries/source/browse/trunk/guava/src/com/google/common/collect/Lists.java
+     * See also:
+     * http://code.google.com/p/guava-libraries/source/browse/trunk/guava
+     * /src/com/google/common/collect/Lists.java
      */
     public static <K, V> HashMap<K, V> createHashMap() {
         return new HashMap<K, V>();
@@ -739,7 +944,7 @@ public final class MinecraftUtil {
     public static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Class<K> keyType) {
         return new EnumMap<K, V>(keyType);
     }
-    
+
     public static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Map<K, V> map, Class<K> keyType) {
         if (map == null) {
             return new EnumMap<K, V>(keyType);

@@ -75,7 +75,6 @@ public class PermissionsBukkitWrapper implements PermissionsWrapper {
                 return null;
             }
         }
-        
     }
 
 }

@@ -37,7 +37,7 @@ public class Essentials implements EconomyWrapper {
             try {
                 Economy.add(this.name, price);
             } catch (UserDoesNotExistException e) {
-                this.logger.warning("Unable to change the price of " + this.name + ", because the user doesn't exists.");                
+                this.logger.warning("Unable to change the price of " + this.name + ", because the user doesn't exists.");
             } catch (NoLoanPermittedException e) {
                 this.logger.warning("Unable to change the price of " + this.name + ", because the loan was permitted.");
             }
@@ -74,7 +74,7 @@ public class Essentials implements EconomyWrapper {
         return this.economy;
     }
 
-    public static class Factory implements EconomyWrapperFactory {
+    public static class Factory implements de.xzise.wrappers.Factory<EconomyWrapper> {
 
         @Override
         public EconomyWrapper create(Plugin plugin, XLogger logger) {
@@ -91,7 +91,5 @@ public class Essentials implements EconomyWrapper {
                 return null;
             }
         }
-
     }
-
 }

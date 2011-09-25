@@ -31,6 +31,9 @@ public class Permissions3Legacy {
     public static EntryVisitor<String> getStringVisitor(String name, XLogger logger) {
         try {
             return new StringInfoVisitor(name);
+        } catch (IllegalAccessError e) {
+            // Permissions 3.1.6 still throws this error
+            return new StringVisitor(name);
         } catch (NoClassDefFoundError e) {
             logger.info("You are maybe using a outdated version of Permissions.");
             return new StringVisitor(name);

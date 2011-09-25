@@ -35,9 +35,17 @@ public class MethodWrapper implements EconomyWrapper {
         
     }
     
-    public MethodWrapper(Method method, Plugin plugin) {
+    private MethodWrapper(Method method, Plugin plugin) {
         this.method = method;
         this.plugin = plugin;
+    }
+    
+    public static MethodWrapper create(Method method) {
+        if (method != null && method.getPlugin() instanceof Plugin) {
+            return new MethodWrapper(method, (Plugin) method.getPlugin());
+        } else {
+            return null;
+        }
     }
     
     @Override

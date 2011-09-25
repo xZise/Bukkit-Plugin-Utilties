@@ -3,8 +3,9 @@ package de.xzise.wrappers.economy;
 import org.bukkit.plugin.Plugin;
 
 import de.xzise.XLogger;
+import de.xzise.wrappers.Factory;
 
-public class iConomyFactory implements EconomyWrapperFactory {
+public class iConomyFactory implements Factory<EconomyWrapper> {
 
     @Override
     public EconomyWrapper create(Plugin plugin, XLogger logger) {

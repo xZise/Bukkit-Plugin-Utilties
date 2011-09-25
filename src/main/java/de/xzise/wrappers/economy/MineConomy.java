@@ -7,19 +7,19 @@ import com.spikensbror.bukkit.mineconomy.bank.Bank;
 import de.xzise.XLogger;
 
 public class MineConomy implements EconomyWrapper {
-    
+
     private final com.spikensbror.bukkit.mineconomy.MineConomy plugin;
-    
+
     public final class MineConomyAccount implements AccountWrapper {
 
         private final Bank bank;
         private final String name;
-        
+
         public MineConomyAccount(Bank bank, String name) {
             this.bank = bank;
             this.name = name;
         }
-        
+
         @Override
         public boolean hasEnough(double price) {
             return this.bank.getTotal(this.name) >= price;
@@ -34,9 +34,9 @@ public class MineConomy implements EconomyWrapper {
         public double getBalance() {
             return this.bank.getTotal(this.name);
         }
-        
+
     }
-    
+
     public MineConomy(com.spikensbror.bukkit.mineconomy.MineConomy plugin) {
         this.plugin = plugin;
     }
@@ -56,7 +56,7 @@ public class MineConomy implements EconomyWrapper {
         return this.plugin;
     }
 
-    public static class Factory implements EconomyWrapperFactory {
+    public static class Factory implements de.xzise.wrappers.Factory<EconomyWrapper> {
 
         @Override
         public EconomyWrapper create(Plugin plugin, XLogger logger) {
@@ -66,7 +66,5 @@ public class MineConomy implements EconomyWrapper {
                 return null;
             }
         }
-        
     }
-    
 }

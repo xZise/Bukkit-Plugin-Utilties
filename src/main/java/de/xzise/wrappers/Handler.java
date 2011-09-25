@@ -55,17 +55,31 @@ public class Handler<W extends Wrapper> {
 
     public void load() {
         this.wrapper = null;
-        for (String string : this.factories.keySet()) {
-            this.load(this.pluginManager.getPlugin(string));
-            if (this.wrapper != null) {
-                return;
-            }
-        }
-        if (this.wrapper == null) {
-            if (this.pluginName == null) {
-                this.logger.info("Loaded no " + this.type + " system, because it is deactivated.");
+        boolean loaded = this.customLoad(); 
+        if (loaded) {
+            if (this.wrapper == null) {
+                this.logger.warning("Invalid " + this.type + " system found.");
             } else {
-                this.logger.info("No " + this.type + " system found until here. A " + this.type + " plugin will be maybe activated later.");
+                String pluginName = "Unknown";
+                if (this.wrapper.getPlugin() != null) {
+                    pluginName = this.wrapper.getPlugin().getDescription().getFullName();
+                }
+                this.loaded();
+                this.logger.info("Linked with " + this.type + " system: " + pluginName);
+            }
+        } else {
+            for (String string : this.factories.keySet()) {
+                this.load(this.pluginManager.getPlugin(string));
+                if (this.wrapper != null) {
+                    return;
+                }
+            }
+            if (this.wrapper == null) {
+                if (this.pluginName == null) {
+                    this.logger.info("Loaded no " + this.type + " system, because it is deactivated.");
+                } else {
+                    this.logger.info("No " + this.type + " system found until here. A " + this.type + " plugin will be maybe activated later.");
+                }
             }
         }
     }
@@ -78,6 +92,10 @@ public class Handler<W extends Wrapper> {
     }
 
     protected boolean customLoad(Plugin plugin) {
+        return false;
+    }
+
+    protected boolean customLoad() {
         return false;
     }
 

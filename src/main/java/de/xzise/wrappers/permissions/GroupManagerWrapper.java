@@ -11,7 +11,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import de.xzise.Callback;
 import de.xzise.MinecraftUtil;
+import de.xzise.XLogger;
+import de.xzise.wrappers.Factory;
+import de.xzise.wrappers.InvalidWrapperException;
 
 public class GroupManagerWrapper implements PermissionsWrapper {
 
@@ -36,6 +40,31 @@ public class GroupManagerWrapper implements PermissionsWrapper {
         return null;
     }
 
+    private <T> T getRecursive(UserWorldHolder userWorldHolder, Callback<T, Variables> callback) {
+        T t = callback.call(userWorldHolder.user.getVariables());
+        if (t == null) {
+            return getRecursive(userWorldHolder.user.getGroup(), userWorldHolder.worldHolder, callback);
+        } else {
+            return t;
+        }
+    }
+
+    private <T> T getRecursive(Group group, OverloadedWorldHolder worldHolder, Callback<T, Variables> callback) {
+        T t = callback.call(group.getVariables());
+        if (t == null) {
+            for (String inherit : group.getInherits()) {
+                Group g = worldHolder.getGroup(inherit);
+                if (g != null) {
+                    t = getRecursive(g, worldHolder, callback);
+                    if (t != null) {
+                        break;
+                    }
+                }
+            }
+        }
+        return t;
+    }
+
     private UserVariables getVariables(CommandSender sender) {
         final Player player = MinecraftUtil.cast(Player.class, sender);
         if (player != null) {
@@ -50,20 +79,56 @@ public class GroupManagerWrapper implements PermissionsWrapper {
         return null;
     }
 
-    @Override
-    public Integer getInteger(CommandSender sender, Permission<Integer> permission) {
-        final UserVariables variables = getVariables(sender);
-        if (variables != null) {
-            return variables.getVarInteger(permission.getName());
+    private final class UserWorldHolder {
+        public final User user;
+        public final OverloadedWorldHolder worldHolder;
+        
+        public UserWorldHolder(User user, OverloadedWorldHolder worldHolder) {
+            this.user = user;
+            this.worldHolder = worldHolder;
+        }
+    }
+
+    private UserWorldHolder getUser(CommandSender sender) {
+        final Player player = MinecraftUtil.cast(Player.class, sender);
+        if (player != null) {
+            OverloadedWorldHolder permissions = this.groupManager.getWorldsHolder().getWorldData(player);
+            if (permissions != null) {
+                User u = permissions.getUser(player.getName());
+                if (u != null) {
+                    return new UserWorldHolder(u, permissions);
+                }
+            }
         }
         return null;
     }
 
     @Override
-    public Double getDouble(CommandSender sender, Permission<Double> permission) {
-        final UserVariables variables = getVariables(sender);
-        if (variables != null) {
-            return variables.getVarDouble(permission.getName());
+    public Integer getInteger(CommandSender sender, final Permission<Integer> permission) {
+        UserWorldHolder u = getUser(sender);
+        if (u != null) {
+            return getRecursive(u, new Callback<Integer, Variables>() {
+
+                @Override
+                public Integer call(Variables parameter) {
+                    return parameter.getVarInteger(permission.getName());
+                }
+            });
+        }
+        return null;
+    }
+
+    @Override
+    public Double getDouble(CommandSender sender, final Permission<Double> permission) {
+        UserWorldHolder u = getUser(sender);
+        if (u != null) {
+            return getRecursive(u, new Callback<Double, Variables>() {
+
+                @Override
+                public Double call(Variables parameter) {
+                    return parameter.getVarDouble(permission.getName());
+                }
+            });
         }
         return null;
     }
@@ -74,23 +139,53 @@ public class GroupManagerWrapper implements PermissionsWrapper {
     }
 
     @Override
-    public String getString(CommandSender sender, Permission<String> permission, boolean recursive) {
+    public String getString(CommandSender sender, final Permission<String> permission, boolean recursive) {
+        if (recursive) {
         final Variables variables = getVariables(sender);
         if (variables != null) {
             return variables.getVarString(permission.getName());
+        }
+        } else {
+            UserWorldHolder u = getUser(sender);
+            if (u != null) {
+                return getRecursive(u, new Callback<String, Variables>() {
+
+                    @Override
+                    public String call(Variables parameter) {
+                        return parameter.getVarString(permission.getName());
+                    }
+                });
+            }
         }
         return null;
     }
 
     @Override
-    public String getString(String groupname, String world, Permission<String> permission) {
+    public String getString(String groupname, String world, final Permission<String> permission) {
         OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(world);
         Group g = owh.getGroup(groupname);
         if (g != null) {
-            return g.getVariables().getVarString(permission.getName());
+            return getRecursive(g, owh, new Callback<String, Variables>() {
+
+                @Override
+                public String call(Variables parameter) {
+                    return parameter.getVarString(permission.getName());
+                }
+            });
         } else {
             return null;
         }
     }
 
+    public static final class FactoryImpl implements Factory<PermissionsWrapper> {
+
+        @Override
+        public PermissionsWrapper create(Plugin plugin, XLogger logger) throws InvalidWrapperException {
+            if (plugin instanceof GroupManager) {
+                return new GroupManagerWrapper((GroupManager) plugin);
+            } else {
+                return null;
+            }
+        }
+    }
 }

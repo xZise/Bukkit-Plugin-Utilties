@@ -56,13 +56,21 @@ public class XLogger {
     public void warning(String msg, Throwable exception) {
         this.log(Level.WARNING, msg, exception);
     }
-    
+
     public void enableMsg() {
-        this.info(this.pluginName + (MinecraftUtil.isSet(this.version) ? " " : "") + this.version + " enabled");
+        this.versionMsg("enabled");
     }
-    
+
     public void disableMsg() {
-        this.info(this.pluginName + (MinecraftUtil.isSet(this.version) ? " " : "") + this.version + " disabled");
+        this.versionMsg("disabled");
+    }
+
+    public void loadMsg() {
+        this.versionMsg("loaded");
+    }
+
+    public void versionMsg(String msg) {
+        this.info(this.pluginName + (MinecraftUtil.isSet(this.version) ? " " : "") + this.version + (MinecraftUtil.isSet(msg) ? " " + msg : ""));
     }
 
 }

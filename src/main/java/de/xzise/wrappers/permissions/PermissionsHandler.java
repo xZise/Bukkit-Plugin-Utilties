@@ -60,6 +60,7 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         FACTORIES.put("PermissionsBukkit", new PermissionsBukkitWrapper.FactoryImpl());
         FACTORIES.put("bPermissions", new BPermissionsWrapper.FactoryImpl());
         FACTORIES.put("PermissionsEx", new PermissionsExWrapper.FactoryImpl());
+        FACTORIES.put("GroupManager", new GroupManagerWrapper.FactoryImpl());
     }
 
     public PermissionsHandler(PluginManager pluginManager, String plugin, XLogger logger) {

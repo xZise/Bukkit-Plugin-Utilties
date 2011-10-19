@@ -38,9 +38,9 @@ public class PermissionsExWrapper implements PermissionsWrapper {
 
     @Override
     public Boolean has(CommandSender sender, Permission<Boolean> permission) {
-        Player player = MinecraftUtil.getPlayer(sender);
-        if (player != null) {
-            return this.permissions.has(player, permission.getName());
+        PermissionUser user = getUser(sender);
+        if (user != null) {
+            return user.has(permission.getName());
         } else {
             return null;
         }

@@ -69,9 +69,12 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         this.economyBaseName = economyBaseName;
         Methods m = null;
         try {
+            Methods.hasMethod();
             m = new Methods();
         } catch (NoClassDefFoundError e) {
             this.logger.info("No Register found. Deactivating Register support.");
+        } catch (IncompatibleClassChangeError e) {
+            this.logger.info("Outdated Register found. Deactivating Register support.");
         }
         this.useMethods = m != null;
         this.pluginManager = pluginManager;

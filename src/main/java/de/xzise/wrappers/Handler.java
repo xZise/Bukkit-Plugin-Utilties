@@ -48,7 +48,7 @@ public class Handler<W extends Wrapper> {
             return "Not linked (yet)";
         }
     }
-    
+
     public W getWrapper() {
         return this.wrapper == null ? this.nullary : this.wrapper;
     }
@@ -149,4 +149,9 @@ public class Handler<W extends Wrapper> {
         }
     }
 
+    public void reload(Plugin plugin) {
+        if (this.unload(plugin)) {
+            this.load();
+        }
+    }
 }

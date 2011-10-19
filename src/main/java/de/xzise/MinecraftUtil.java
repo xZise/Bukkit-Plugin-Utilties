@@ -1,5 +1,6 @@
 package de.xzise;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -10,6 +11,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +21,7 @@ import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -29,6 +32,7 @@ import org.bukkit.plugin.PluginManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -45,18 +49,65 @@ public final class MinecraftUtil {
     /**
      * @deprecated Use {@link #PLAYER_LINES_COUNT} instead.
      */
+    //TODO: Remove in BPU 2
     public static final int MAX_LINES_VISIBLE = PLAYER_LINES_COUNT;
     public static final int CONSOLE_LINES_COUNT = 30;
 
+    /** Default tolerance */
     public static final double EPSILON = 0.0000001;
 
+    /** Version information */
+    private static final int[] VERSION = new int[] { 1, 3, 0 };
+    public static final boolean OFFICAL = false;
+
     private MinecraftUtil() {
+    }
+
+    /*
+     * BPU specific
+     */
+
+    /**
+     * Returns the current version of BPU.
+     * @return the current version of BPU.
+     * @since 1.3
+     */
+    public static int[] getVersion() {
+        return VERSION.clone();
+    }
+
+    /**
+     * Returns if the currently using version of BPU needs to be updated to fit
+     * the specifications of the plugin.
+     * @param primary Primary number of version.
+     * @param secondary Secondary number of version.
+     * @return if BPU needs to be updated.
+     * @since 1.3
+     */
+    public static boolean needUpdate(int primary, int secondary) {
+        if (primary > VERSION[0]) {
+            return true;
+        } else if (primary == VERSION[0]) {
+            return secondary > VERSION[1];
+        } else {
+            return false;
+        }
     }
 
     /*
      * Minecraft specific
      */
 
+    /**
+     * Get maximum lines of the command sender.
+     * <ul><li>{@link ConsoleCommandSender}: {@link #CONSOLE_LINES_COUNT}</li>
+     * <li>{@link LinesCountable}: {@link LinesCountable#getMaxLinesVisible()}</li>
+     * <li>Everything else (also players): {@link #PLAYER_LINES_COUNT}</li>
+     * </ul>
+     * @param sender tested sender.
+     * @return maximum lines for the command sender.
+     * @since 1.0
+     */
     public static int getMaximumLines(CommandSender sender) {
         if (sender instanceof ConsoleCommandSender) {
             return CONSOLE_LINES_COUNT;
@@ -67,6 +118,25 @@ public final class MinecraftUtil {
         }
     }
 
+    /**
+     * Get the online player instance for the offline player. If the player isn't
+     * online it will return <code>null</code>.
+     * @param player the offline player instance.
+     * @return the online player instance.
+     * @since 1.3
+     */
+    public static Player getFromOfflinePlayer(OfflinePlayer player) {
+        return player.isOnline() ? Bukkit.getServer().getPlayerExact(player.getName()) : null;
+    }
+
+    /**
+     * Returns the player instance for a command sender. If there is no way to
+     * do this it will return <code>null</code>. It will unwrap the
+     * {@link CommandSenderWrapper} chain.
+     * @param sender the tested command sender instance.
+     * @return the player instance.
+     * @since 1.0
+     */
     public static Player getPlayer(CommandSender sender) {
         if (sender instanceof Player) {
             return (Player) sender;
@@ -78,13 +148,17 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Returns the name to a sender. If the sender has no player it returns
-     * null.
+     * Returns the name to a sender. If possible it will try to call
+     * {@link CommandSender#getName()}. If the Bukkit version doesn't support
+     * this call it try to interpret the sender as player with
+     * {@link #getPlayer(CommandSender)}. If this returns <code>null</code> this
+     * will return <code>null</code> otherwise the name of the player.
      * 
      * @param sender
      *            The given sender.
      * @return Returns the name of the sender and null if the sender is no
      *         player.
+     * @since 1.0
      */
     public static String getPlayerName(CommandSender sender) {
         try {
@@ -111,6 +185,7 @@ public final class MinecraftUtil {
      * @param sender
      *            The name of this sender will be determined.
      * @return The name of the sender.
+     * @since 1.0
      */
     public static String getName(CommandSender sender) {
         return getName(sender, "Somebody");
@@ -120,7 +195,7 @@ public final class MinecraftUtil {
      * Returns a name in each case.
      * <ul>
      * <li>If the sender is a player it return the player name.</li>
-     * <li>If the sender is the console it will return <code>[CONSOLE]</code>.</li>
+     * <li>If the sender is the console it will return {@link ConsoleCommandWrapper#NAME} (<code>[CONSOLE]</code>).</li>
      * <li>If the sender is Nameable it return this name.</li>
      * <li>In all other cases it will return the value of <code>somebody</code>.
      * </li>
@@ -132,6 +207,7 @@ public final class MinecraftUtil {
      *            The name of the sender, if it isn't a player, nameable and no
      *            console.
      * @return The name of the sender.
+     * @since 1.0
      */
     public static String getName(CommandSender sender, String somebody) {
         return getName(sender, ConsoleCommandWrapper.NAME, somebody);
@@ -156,6 +232,7 @@ public final class MinecraftUtil {
      *            The name of the sender, if it isn't a player, nameable and no
      *            console.
      * @return The name of the sender.
+     * @since 1.0
      */
     public static String getName(CommandSender sender, String console, String somebody) {
         String name = MinecraftUtil.getPlayerName(sender);
@@ -183,6 +260,7 @@ public final class MinecraftUtil {
      *         Otherwise the inputed name.
      * @see Uses {@link Server#getPlayer(String)} to determine the player object
      *      to the name.
+     * @since 1.0
      */
     public static String expandName(String name, Server server) {
         Player player = server.getPlayer(name);
@@ -198,16 +276,19 @@ public final class MinecraftUtil {
      *         Otherwise the inputed name.
      * @see Call {@link #expandName(String, Server)} where the server is
      *      {@link Bukkit#getServer()}.
+     * @since 1.0
      */
     public static String expandName(String name) {
         return expandName(name, Bukkit.getServer());
     }
 
+    // Since 1.0
     // TODO: Support logger
     public static void register(PluginManager pluginManager, XLogger logger, SuperPerm... perms) {
         register(pluginManager, logger, new SuperPerm[][] { perms });
     }
 
+    // Since 1.0
     // TODO: Support logger
     public static void register(PluginManager pluginManager, XLogger logger, SuperPerm[]... perms) {
         try {
@@ -370,6 +451,11 @@ public final class MinecraftUtil {
         return builder.build();
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> getOneElementList(T element) {
+        return element == null ? Lists.<T>newArrayListWithCapacity(0) : Lists.newArrayList(element);
+    }
+
     public static String[] parseLine(String line) {
         return MinecraftUtil.parseLine(line, ' ');
     }
@@ -452,10 +538,255 @@ public final class MinecraftUtil {
         return values.toArray(new String[0]);
     }
 
+    /**
+     * Parses a string line using quoting and escaping. It will split the line
+     * where a delimiter is, but ignores quoted or escaped delimiter.
+     * 
+     * Examples: <blockquote>
+     * <table>
+     * <tr>
+     * <th>Input</th>
+     * <th>Output</th>
+     * </tr>
+     * <tr>
+     * <td>Hello World</td>
+     * <td><tt>{ Hello, World }</tt></td>
+     * </tr>
+     * <tr>
+     * <td>"Hello World"</td>
+     * <td><tt>{ Hello World }</tt></td>
+     * </tr>
+     * <tr>
+     * <td>Hello\ World</td>
+     * <td><tt>{ Hello World }</tt></td>
+     * </tr>
+     * <tr>
+     * <td>"Hello World \"Bukkit\""</td>
+     * <td><tt>{ Hello World "Bukkit" }</tt></td>
+     * </tr>
+     * </table>
+     * </blockquote>
+     * 
+     * <b>Notice</b>: This method ignores illegal escapes.
+     * 
+     * @param line
+     *            The command line.
+     * @param delimiter
+     *            The character which delimits the line.
+     * @param quote
+     *            The character which acts as quotes.
+     * @param escape
+     *            The character which acts as escape character.
+     * @param trimQuotes
+     *            If set to true, everything before and after the quote character will be removed. 
+     * @return The parsed segments.
+     */
+    //TODO: Remove everything after the quote!
+    public static String[] parseLine(String line, char delimiter, char quote, char escape, boolean trimQuotes) {
+        boolean quoted = false;
+        boolean escaped = false;
+        int lastStart = 0;
+        char[] word = new char[line.length()];
+        int wordIndex = 0; // Word length
+        int quotedWordLength = -1;
+        int quotedLastStart = -1;
+        List<String> values = new ArrayList<String>();
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (escaped) {
+                word[wordIndex] = c;
+                wordIndex++;
+                escaped = false;
+            } else {
+                if (c == quote) {
+                    if (trimQuotes) {
+                        if (quoted) {
+                            quotedWordLength = wordIndex;
+                        } else if (quotedLastStart < 0) {
+                            quotedLastStart = wordIndex;
+                        }
+                    }
+                    quoted = !quoted;
+                } else if (c == escape) {
+                    escaped = true;
+                } else if (delimiter == c && !quoted) {
+                    if (lastStart < i) {
+                        final int first = quotedLastStart < 0 ? 0 : quotedLastStart;
+                        final int last = quotedWordLength < 0 ? wordIndex : (quotedWordLength - first);
+                        values.add(String.copyValueOf(word, first, last));
+                        word = new char[line.length() - i];
+                        wordIndex = 0;
+                        quotedWordLength = -1;
+                    }
+                    lastStart = i + 1;
+                    quotedLastStart = -1;
+                } else {
+                    word[wordIndex] = c;
+                    wordIndex++;
+                }
+            }
+        }
+        if (wordIndex > 0) {
+            final int first = quotedLastStart < 0 ? 0 : quotedLastStart;
+            final int last = quotedWordLength < 0 ? wordIndex : (quotedWordLength - first);
+            values.add(String.copyValueOf(word, first, last));
+        }
+        return values.toArray(new String[0]);
+    }
+
     /*
      * Java specific
      */
 
+    /**
+     * Returns the binary prefix for a specific value. Each step is 1024 units
+     * bigger than the previous. The largest (defined) prefix is
+     * <code>Yobi/Yi</code> where 1 YiB is 1*2^80 Bytes.
+     * 
+     * @param value
+     *            the prefixed value.
+     * @return value and binary prefix (e.g. 2 KiB), where the value is lower
+     *         than 1024 if the parameter is lower than 2^90.
+     * @since 1.3
+     */
+    public static String getBinaryPrefixValue(long value) {
+        return getBinaryPrefixValue(value, 0);
+    }
+
+    /**
+     * Returns the binary prefix for a specific value. Each step is 1024 units
+     * bigger than the previous. The largest (defined) prefix is
+     * <code>Yobi/Yi</code> where 1 YiB is 1*2^80 Bytes.
+     * 
+     * @param value
+     *            the prefixed value.
+     * @param decimalPlaces
+     *            the decimal places in the result.
+     * @return value and binary prefix (e.g. 2 KiB), where the value is lower
+     *         than 1024 if the parameter is lower than 2^90.
+     * @since 1.3
+     */
+    public static String getBinaryPrefixValue(long value, int decimalPlaces) {
+        final int ITERATION_WIDTH = 10;
+        final int ONE_ITERATION = 1 << ITERATION_WIDTH; // 2¹⁰
+
+        int iterations = 0;
+        if (Math.abs(value) >= ONE_ITERATION) {
+            final String[] PREFIXES = new String[] { "", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi" };
+            final int TWO_ITERATIONS = ONE_ITERATION << ITERATION_WIDTH;
+            while (Math.abs(value) >= TWO_ITERATIONS && iterations < PREFIXES.length - 2) {
+                value >>= ITERATION_WIDTH;
+                iterations++;
+            }
+
+            return round(((double) value) / ONE_ITERATION, decimalPlaces) + " " + PREFIXES[iterations + 1];
+        } else {
+            return value + " ";
+        }
+    }
+
+    /**
+     * Returns the SI prefix for a specific value. Each step is 1000 units
+     * bigger/smaller than the previous. The largest/smallest (defined) prefix
+     * is <code>Yotta/Yokto</code>. For example 1 Yottameter are 1*1000^8 meter.
+     * 
+     * @param value
+     *            the prefixed value.
+     * @return value and SI prefix (e.g. 2 kg), where the value is lower than
+     *         1000 if the parameter is lower than 1000^9.
+     * @since 1.3
+     */
+    public static String getSIPrefixValue(double value) {
+        return getSIPrefixValue(value, 0);
+    }
+
+    /**
+     * Returns the SI prefix for a specific value. Each step is 1000 units
+     * bigger/smaller than the previous. The largest/smallest (defined) prefix
+     * is <code>Yotta/Yokto</code>. For example 1 Yottameter are 1*1000^8 meter.
+     * 
+     * @param value
+     *            the prefixed value.
+     * @param decimalPlaces
+     *            the decimal places in the result.
+     * @return value and SI prefix (e.g. 2 kg), where the value is lower than
+     *         1000 if the parameter is lower than 1000^9.
+     * @since 1.3
+     */
+    public static String getSIPrefixValue(double value, int decimalPlaces) {
+        final int ONE_ITERATION = 1000;
+        if (decimalPlaces < 0) {
+            throw new IllegalArgumentException("Decimal places has to be non negative.");
+        } else if (Math.abs(value) < 1) {
+            final String[] PREFIXES = new String[] { "", "m", "µ", "n", "p", "f", "a", "z", "y" };
+            return getPrefix(value, 1 / (double) ONE_ITERATION, PREFIXES, decimalPlaces);
+        } else {
+            // Yes the k is lowercase
+            final String[] PREFIXES = new String[] { "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
+            return getPrefix(value, ONE_ITERATION, PREFIXES, decimalPlaces);
+        }
+    }
+
+    private static String getPrefix(double value, double factor, String[] prefixes, int decimalPlaces) {
+        int iterations = 0;
+        while ((factor < 1 ? Math.abs(value) <= factor : Math.abs(value) >= factor) && iterations < prefixes.length - 1) {
+            value /= factor;
+            iterations++;
+        }
+        return round(value, decimalPlaces) + " " + prefixes[iterations];
+    }
+
+    /**
+     * Rounds the value with the specified number of decimal places. Basically a <code>Round(value&nbsp;*&nbsp;10^(decimal&nbsp;places))&nbsp;/&nbsp;10^(decimal&nbsp;places)</code>.
+     * @param value Value to round.
+     * @param decimalPlaces Number of specified decimal places and have to be non negative.
+     * @return the value with the specified number of decimal places.
+     * @since 1.3
+     */
+    public static double round(double value, int decimalPlaces) {
+        if (decimalPlaces < 0) {
+            throw new IllegalArgumentException("Decimal places has to be non negative.");
+        } else if (decimalPlaces == 0) {
+            return Math.round(value);
+        } else {
+            final double factor = Math.pow(10, decimalPlaces);
+            return Math.round(value * factor) / factor;
+        }
+    }
+
+    /**
+     * Rounds the value with the specified number of decimal places. Basically a <code>Round(value&nbsp;*&nbsp;10^(decimal&nbsp;places))&nbsp;/&nbsp;10^(decimal&nbsp;places)</code>.
+     * @param value Value to round.
+     * @param decimalPlaces Number of specified decimal places and have to be non negative.
+     * @return the value with the specified number of decimal places.
+     * @since 1.3
+     */
+    public static float round(float value, int decimalPlaces) {
+        if (decimalPlaces < 0) {
+            throw new IllegalArgumentException("Decimal places has to be non negative.");
+        }  if (decimalPlaces == 0) {
+            return Math.round(value);
+        } else {
+            final float factor = (float) Math.pow(10, decimalPlaces);
+            return Math.round(value * factor) / factor;
+        }
+    }
+
+    /**
+     * Try to cast an object to a specific class and returns a default value if
+     * it was impossible.
+     * 
+     * @param clazz
+     *            the target class of the object.
+     * @param o
+     *            the casted object.
+     * @param def
+     *            the default value if the object couldn't be casted to the
+     *            class.
+     * @return the casted object or the default value if the cast wasn't
+     *         possible.
+     * @since 1.0
+     */
     public static <T> T cast(Class<T> clazz, Object o, T def) {
         try {
             return clazz.cast(o);
@@ -464,22 +795,77 @@ public final class MinecraftUtil {
         }
     }
 
+    /**
+     * Try to cast an object to a specific class and returns <code>null</code>
+     * if it was impossible.
+     * 
+     * @param clazz
+     *            the target class of the object.
+     * @param o
+     *            the casted object.
+     * @return the casted object or <code>null</code> if the cast wasn't
+     *         possible.
+     * @since 1.0
+     */
     public static <T> T cast(Class<T> clazz, Object o) {
         return cast(clazz, o, null);
     }
 
+    /**
+     * Checks if two doubles a nearly equal with the given tolerance.
+     * @param a first double.
+     * @param b second double.
+     * @param tolerance the tolerance.
+     * @return if both doubles are nearly equals within the tolerance.
+     * @since 1.3
+     */
+    public static boolean equals(double a, double b, double tolerance) {
+        return a - tolerance > b && a + tolerance < b;
+    }
+
+    /**
+     * Checks if two doubles a nearly equal. The tolerance is {@link #EPSILON}.
+     * @param a first double.
+     * @param b second double.
+     * @return if both doubles are nearly equals within the tolerance.
+     */
     public static boolean equals(double a, double b) {
-        return a - EPSILON > b && a + EPSILON < b;
+        return equals(a, b, EPSILON);
     }
 
-    public static boolean equals(Object o, Object p) {
-        return o == null ? p == null : o.equals(p);
+    /**
+     * Checks if both objects are equals. This includes a null check.
+     * @param a first object.
+     * @param b second object.
+     * @return if both objects are equals or null.
+     * @since 1.2
+     */
+    public static boolean equals(Object a, Object b) {
+        return a == null ? b == null : a.equals(b);
     }
 
+    /**
+     * Creates a new array of the given length and type.
+     * @param clazz class of the elements.
+     * @param newLength new length of the array.
+     * @return new array with the given length and type.
+     * @since 1.3
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T[] createArray(Class<? extends Object[]> clazz, int newLength) {
+        return ((Object) clazz == (Object) Object[].class) ? (T[]) new Object[newLength] : (T[]) Array.newInstance(clazz.getComponentType(), newLength);
+    }
+
+    /**
+     * Concatenate one element an a list of elements.
+     * @param t one element.
+     * @param ts an array of elements.
+     * @return an array with the element on the first place and the rest of the array following it.
+     * @since 1.0
+     */
     public static <T> T[] concat(T t, T... ts) {
         int newLength = ts.length + 1;
-        @SuppressWarnings("unchecked")
-        T[] completed = ((Object) ts.getClass() == (Object) Object[].class) ? (T[]) new Object[newLength] : (T[]) Array.newInstance(ts.getClass().getComponentType(), newLength);
+        T[] completed = createArray(ts.getClass(), newLength);
         completed[0] = t;
         for (int i = 0; i < ts.length; i++) {
             completed[i + 1] = ts[i];
@@ -519,6 +905,7 @@ public final class MinecraftUtil {
      * @param o
      *            The tested object.
      * @return If the object is not empty.
+     * @since 1.0
      */
     public static boolean isSet(Object o) {
         if (o == null) {
@@ -559,13 +946,30 @@ public final class MinecraftUtil {
         return value + ordinal;
     }
 
+    public static <T> T[] scramble(T[] input) {
+        Random rand = new Random();
+        final int length = input.length;
+        T[] result = createArray(input.getClass(), length);
+        boolean[] used = new boolean[length];
+        int i = 0;
+        while (i < length) {
+            int newIdx = rand.nextInt(length);
+            if (!used[newIdx]) {
+                used[newIdx] = true;
+                result[newIdx] = input[i];
+                i++;
+            }
+        }
+        return result;
+    }
+
     public static String scramble(String word) {
         Random rand = new Random();
+        final int length = word.length();
         char[] input = word.toCharArray();
-        char[] result = new char[word.length()];
-        boolean[] used = new boolean[word.length()];
+        char[] result = new char[length];
+        boolean[] used = new boolean[length];
         int i = 0;
-        int length = word.length();
         while (i < length) {
             int newIdx = rand.nextInt(length);
             if (!used[newIdx]) {
@@ -577,7 +981,15 @@ public final class MinecraftUtil {
         return new String(result);
     }
 
-    public static int getWidth(int number, int base) {
+    /**
+     * Returns the width where the base could be dynamically defined. If the base
+     * is a power of 2 the {@link #getWidthWithBinaryBase(int, int)} would be faster.
+     * @param number the given number.
+     * @param base the given base.
+     * @return the “width” of the given number with the given base.
+     * @since 1.0
+     */
+    public static int getWidth(int number, final int base) {
         int width = 1;
         while (number >= base) {
             number /= base;
@@ -586,13 +998,53 @@ public final class MinecraftUtil {
         return width;
     }
 
-    public static <T> boolean toogleEntry(T entry, List<T> list) {
-        if (list.remove(entry)) {
+    /**
+     * Returns the width where the base is a power of 2 (<a href="http://oeis.org/A000079">oeis.org/A000079</a>).
+     * @param number the given number.
+     * @param baseBit base bit. The base will be 2^(base bit).
+     * @return the “width” of the given number with the given base.
+     * @since 1.3
+     */
+    public static int getWidthWithBinaryBase(int number, final int baseBit) {
+        int width = 1;
+        final int base = 1 << baseBit;
+        while (width >= base) {
+            width <<= baseBit;
+            width++;
+        }
+        return width;
+    }
+
+    /**
+     * Toggles an entry in a collection. So if the entry is in the collection it
+     * will be removed and if it isn't in the collection it will be added.
+     * @param entry tested entry.
+     * @param collection tested collection.
+     * @return If the entry was added.
+     * @since 1.3
+     */
+    public static <T> boolean toggleEntry(T entry, Collection<T> collection) {
+        if (collection.remove(entry)) {
             return false;
         } else {
-            list.add(entry);
+            collection.add(entry);
             return true;
         }
+    }
+
+    /**
+     * Toggles an entry in a list. So if the entry is in the list it
+     * will be removed and if it isn't in the list it will be added.
+     * @param entry tested entry.
+     * @param list tested list.
+     * @return If the entry was added.
+     * @deprecated Use {@link #toggleEntry(Object, Collection)} instead.
+     * @since 1.0
+     */
+    @Deprecated
+    //TODO: Remove in BPU 2! Spelled wrong.
+    public static <T> boolean toogleEntry(T entry, List<T> list) {
+        return toggleEntry(entry, list);
     }
 
     /**
@@ -602,6 +1054,7 @@ public final class MinecraftUtil {
      * @param string
      *            The string to be parsed.
      * @return The value if the string is valid, otherwise <code>null</code>.
+     * @since 1.0
      */
     public static Integer tryAndGetInteger(String string) {
         try {
@@ -618,6 +1071,7 @@ public final class MinecraftUtil {
      * @param string
      *            The string to be parsed.
      * @return The value if the string is valid, otherwise <code>null</code>.
+     * @since 1.0
      */
     public static Short tryAndGetShort(String string) {
         try {
@@ -634,6 +1088,7 @@ public final class MinecraftUtil {
      * @param string
      *            The string to be parsed.
      * @return The value if the string is valid, otherwise <code>null</code>.
+     * @since 1.0
      */
     public static Byte tryAndGetByte(String string) {
         try {
@@ -644,12 +1099,30 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Tries to convert a string into a short. If the string is invalid it
+     * Tries to convert a string into a float. If the string is invalid it
      * returns <code>null</code>.
      * 
      * @param string
      *            The string to be parsed.
      * @return The value if the string is valid, otherwise <code>null</code>.
+     * @since 1.3
+     */
+    public static Float tryAndGetFloat(String string) {
+        try {
+            return Float.parseFloat(string);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Tries to convert a string into a double. If the string is invalid it
+     * returns <code>null</code>.
+     * 
+     * @param string
+     *            The string to be parsed.
+     * @return The value if the string is valid, otherwise <code>null</code>.
+     * @since 1.0
      */
     public static Double tryAndGetDouble(String string) {
         try {
@@ -659,10 +1132,23 @@ public final class MinecraftUtil {
         }
     }
 
+    /**
+     * Truncates the specified value.
+     * @param value
+     * @return truncated value.
+     * @since 1.0
+     */
     public static long trunc(double value) {
         return (long) value;
     }
 
+    /**
+     * Get all decimal places of the specified value. For example <code>4.2</code> would return
+     * <code>0.2</code>.
+     * @param value Specified value.
+     * @return decimal places of the specified value.
+     * @since 1.0
+     */
     public static double getDecimalPlaces(double value) {
         return Math.abs(value - trunc(value));
     }
@@ -675,11 +1161,27 @@ public final class MinecraftUtil {
      * @param a
      *            Searched array.
      * @return the first position found.
+     * @since 1.0
      */
     public static <T> int indexOf(T o, T[] a) {
+        return indexOf(o, a, CLASSIC_EQUAL_CHECKER);
+    }
+
+    /**
+     * Tests where the first object is inside the array.
+     * 
+     * @param o
+     *            Searched object.
+     * @param a
+     *            Searched array.
+     * @param checker Object which checks if two objects are equals.
+     * @return the first position found.
+     * @since 1.3
+     */
+    public static <T> int indexOf(T o, T[] a, EqualCheck<T> checker) {
         int idx = 0;
         for (T t : a) {
-            if (t != null && t.equals(o)) {
+            if (checker.equals(o, t)) {
                 return idx;
             }
             idx++;
@@ -687,12 +1189,72 @@ public final class MinecraftUtil {
         return -1;
     }
 
+    public static interface EqualCheck<T> {
+        boolean equals(T a, T b);
+    }
+
+    public static class ComparatorEqualChecker<T> implements EqualCheck<T> {
+        private final Comparator<T> comparator;
+
+        public ComparatorEqualChecker(Comparator<T> comparator) {
+            this.comparator = comparator;
+        }
+
+        @Override
+        public boolean equals(T a, T b) {
+            return this.comparator.compare(a, b) == 0;
+        }
+    }
+
+    public static final ClassicEqualChecker CLASSIC_EQUAL_CHECKER = new ClassicEqualChecker();
+    public static class ClassicEqualChecker implements EqualCheck<Object> {
+        @Override
+        public boolean equals(Object a, Object b) {
+            return MinecraftUtil.equals(a, b);
+        }
+    }
+
+//    public static final ComparableEqualChecker<? extends Comparable<?>> COMPARABLE_EQUAL_CHECKER = new ComparableEqualChecker();
+    public static class ComparableEqualChecker<T extends Comparable<T>> implements EqualCheck<T> {
+        @Override
+        public boolean equals(T a, T b) {
+            return a == null ? b == null : a.compareTo(b) == 0;
+        }
+    }
+
+    public static final StringIgnoreCaseEqualChecker STRING_IGNORE_CASE_EQUAL_CHECKER = new StringIgnoreCaseEqualChecker();
+    public static class StringIgnoreCaseEqualChecker implements EqualCheck<String> {
+        @Override
+        public boolean equals(String a, String b) {
+            return a == null ? b == null : a.equalsIgnoreCase(b);
+        }
+    }
+
     public static <T> T replaceNull(T value, T nullReplacement) {
         return value == null ? nullReplacement : value;
     }
 
+    /**
+     * Returns if the tested object <code>o</code> is in the array <code>a</code>.
+     * @param o Searched object.
+     * @param a Searched array.
+     * @return if the object is in the array.
+     * @since 1.0
+     */
     public static <T> boolean contains(T o, T[] a) {
         return MinecraftUtil.indexOf(o, a) >= 0;
+    }
+
+    /**
+     * Returns if the tested object <code>o</code> is in the array <code>a</code>.
+     * @param o Searched object.
+     * @param a Searched array.
+     * @param checker Object which checks if two objects are equals.
+     * @return if the object is in the array.
+     * @since 1.3
+     */
+    public static <T> boolean contains(T o, T[] a, EqualCheck<T> checker) {
+        return MinecraftUtil.indexOf(o, a, checker) >= 0;
     }
 
     public static interface ChanceElement<T> {
@@ -756,6 +1318,7 @@ public final class MinecraftUtil {
      * @param list
      *            The given list.
      * @return a random element of the list.
+     * @since 1.0
      */
     public static <T> T getRandom(List<T> list) {
         if (MinecraftUtil.isSet(list)) {
@@ -772,6 +1335,7 @@ public final class MinecraftUtil {
      * @param list
      *            The given list.
      * @return a random element of the list.
+     * @since 1.0
      */
     public static <T> T getRandom(T[] array) {
         if (MinecraftUtil.isSet(array)) {
@@ -951,5 +1515,26 @@ public final class MinecraftUtil {
         } else {
             return new EnumMap<K, V>(map);
         }
+    }
+
+    /**
+     * Reads all lines of a file into a string list.
+     * @param f file object.
+     * @return all lines of the file.
+     * @throws IOException if there were problems on reading the file.
+     */
+    public static List<String> readLines(File f) throws IOException {
+        List<String> lines = new ArrayList<String>();
+        FileReader fileReader = new FileReader(f);
+        try {
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            String line = null;
+            while ((line = bufferedReader.readLine()) != null) {
+                lines.add(line);
+            }
+        } finally {
+            fileReader.close();
+        }
+        return lines;
     }
 }

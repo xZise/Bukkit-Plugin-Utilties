@@ -11,6 +11,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -496,46 +497,7 @@ public final class MinecraftUtil {
      * @return The parsed segments.
      */
     public static String[] parseLine(String line, char delimiter) {
-        boolean quoted = false;
-        boolean escaped = false;
-        int lastStart = 0;
-        char[] word = new char[line.length()];
-        int wordIndex = 0;
-        List<String> values = new ArrayList<String>(2);
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-            if (escaped) {
-                word[wordIndex] = c;
-                wordIndex++;
-                escaped = false;
-            } else {
-                switch (c) {
-                case '"':
-                    quoted = !quoted;
-                    break;
-                case '\\':
-                    escaped = true;
-                    break;
-                default:
-                    if (delimiter == c && !quoted) {
-                        if (lastStart < i) {
-                            values.add(String.copyValueOf(word, 0, wordIndex));
-                            word = new char[line.length() - i];
-                            wordIndex = 0;
-                        }
-                        lastStart = i + 1;
-                    } else {
-                        word[wordIndex] = c;
-                        wordIndex++;
-                    }
-                    break;
-                }
-            }
-        }
-        if (wordIndex > 0) {
-            values.add(String.copyValueOf(word, 0, wordIndex));
-        }
-        return values.toArray(new String[0]);
+        return parseLine(line, delimiter, '"', '\\', null, null, false);
     }
 
     /**
@@ -582,9 +544,10 @@ public final class MinecraftUtil {
      * @return The parsed segments.
      */
     //TODO: Remove everything after the quote!
-    public static String[] parseLine(String line, char delimiter, char quote, char escape, boolean trimQuotes) {
+    public static String[] parseLine(String line, char delimiter, char quote, char escape, Character bracketStart, Character bracketEnd, boolean trimQuotes) {
         boolean quoted = false;
         boolean escaped = false;
+        int bracketLevel = 0;
         int lastStart = 0;
         char[] word = new char[line.length()];
         int wordIndex = 0; // Word length
@@ -598,7 +561,7 @@ public final class MinecraftUtil {
                 wordIndex++;
                 escaped = false;
             } else {
-                if (c == quote) {
+                if (c == quote && bracketLevel <= 0) {
                     if (trimQuotes) {
                         if (quoted) {
                             quotedWordLength = wordIndex;
@@ -609,7 +572,7 @@ public final class MinecraftUtil {
                     quoted = !quoted;
                 } else if (c == escape) {
                     escaped = true;
-                } else if (delimiter == c && !quoted) {
+                } else if (c == delimiter && !quoted && bracketLevel <= 0) {
                     if (lastStart < i) {
                         final int first = quotedLastStart < 0 ? 0 : quotedLastStart;
                         final int last = quotedWordLength < 0 ? wordIndex : (quotedWordLength - first);
@@ -621,6 +584,11 @@ public final class MinecraftUtil {
                     lastStart = i + 1;
                     quotedLastStart = -1;
                 } else {
+                    if (equalObjects(c, bracketStart)) {
+                        bracketLevel++;
+                    } else if (equalObjects(c, bracketEnd)) {
+                        bracketLevel = Math.max(bracketLevel - 1, 0);
+                    }
                     word[wordIndex] = c;
                     wordIndex++;
                 }
@@ -839,9 +807,24 @@ public final class MinecraftUtil {
      * @param b second object.
      * @return if both objects are equals or null.
      * @since 1.2
+     * @see MinecraftUtil#equalObjects(Object, Object)
      */
     public static boolean equals(Object a, Object b) {
         return a == null ? b == null : a.equals(b);
+    }
+
+    /**
+     * Checks if both objects are equals. This includes a null check. An alias
+     * method if java selects {@link MinecraftUtil#equals(double, double)} it
+     * is possible to use this method.
+     * @param a first object.
+     * @param b second object.
+     * @return if both objects are equals or null.
+     * @since 1.3
+     * @see MinecraftUtil#equals(Object, Object)
+     */
+    public static boolean equalObjects(Object a, Object b) {
+        return equals(a, b);
     }
 
     /**
@@ -946,39 +929,10 @@ public final class MinecraftUtil {
         return value + ordinal;
     }
 
-    public static <T> T[] scramble(T[] input) {
-        Random rand = new Random();
-        final int length = input.length;
-        T[] result = createArray(input.getClass(), length);
-        boolean[] used = new boolean[length];
-        int i = 0;
-        while (i < length) {
-            int newIdx = rand.nextInt(length);
-            if (!used[newIdx]) {
-                used[newIdx] = true;
-                result[newIdx] = input[i];
-                i++;
-            }
-        }
-        return result;
-    }
-
     public static String scramble(String word) {
-        Random rand = new Random();
-        final int length = word.length();
-        char[] input = word.toCharArray();
-        char[] result = new char[length];
-        boolean[] used = new boolean[length];
-        int i = 0;
-        while (i < length) {
-            int newIdx = rand.nextInt(length);
-            if (!used[newIdx]) {
-                used[newIdx] = true;
-                result[newIdx] = input[i];
-                i++;
-            }
-        }
-        return new String(result);
+        char[] c = word.toCharArray();
+        Collections.shuffle(Arrays.asList(c));
+        return new String(c);
     }
 
     /**
@@ -1426,8 +1380,7 @@ public final class MinecraftUtil {
         } else if (start < 0 || start >= t.length) {
             throw new IndexOutOfBoundsException("Start index is out of the bount (" + start + ").");
         } else {
-            @SuppressWarnings("unchecked")
-            T[] newArray = (T[]) new Object[len];
+            T[] newArray = createArray(t.getClass(), len);
 
             System.arraycopy(t, start, newArray, 0, Math.min(t.length, newArray.length));
 
@@ -1445,6 +1398,8 @@ public final class MinecraftUtil {
      * @return new array with a new first element.
      * @deprecated {@link Arrays#copyOf(Object[], int)}
      */
+    @Deprecated
+    //TODO: Remove with BPU 2
     public static <T> T[] subArray(T[] t, int start) {
         return Arrays.copyOf(t, start);
     }
@@ -1460,6 +1415,7 @@ public final class MinecraftUtil {
      * @deprecated Use {@link #createReverseEnumMap(Class, Callback)} instead.
      */
     @Deprecated
+    //TODO: Remove with BPU 2
     public static <K, V extends Enum<?>> Map<K, V> createEnumMap(Class<V> enumClass, Callback<K, ? super V> keys) {
         return createReverseEnumMap(enumClass, keys);
     }
@@ -1501,12 +1457,41 @@ public final class MinecraftUtil {
      * http://code.google.com/p/guava-libraries/source/browse/trunk/guava
      * /src/com/google/common/collect/Lists.java
      */
+    /**
+     * Creates a <i>mutable</i>, empty {@code HashMap} instance.
+     * 
+     * @return a new, empty {@code HashMap}
+     * @deprecated Use {@link Maps#newHashMap()} instead.
+     */
+    @Deprecated
+    //TODO: Remove with BPU 2
     public static <K, V> HashMap<K, V> createHashMap() {
         return new HashMap<K, V>();
     }
 
+    /**
+     * Creates an {@code EnumMap} instance.
+     * 
+     * @param type
+     *            the key type for this map
+     * @return a new, empty {@code EnumMap}
+     * @deprecated Use {@link Maps#newEnumMap(Class)} instead.
+     */
+    @Deprecated
+    //TODO: Remove with BPU 2
     public static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Class<K> keyType) {
         return new EnumMap<K, V>(keyType);
+    }
+
+    /**
+     * Creates an immutable map of the given map. If the given map is null it
+     * returns an empty immutable map.
+     * @param map the map on which the immutable bases on.
+     * @return the immutable map bases on the map.
+     * @since 1.3
+     */
+    public static <K, V> ImmutableMap<K, V> createImmutableMap(Map<K, V> map) {
+        return map == null ? ImmutableMap.<K, V>of() : ImmutableMap.copyOf(map);
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Map<K, V> map, Class<K> keyType) {

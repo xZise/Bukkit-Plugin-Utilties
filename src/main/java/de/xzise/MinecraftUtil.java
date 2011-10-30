@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +36,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import de.xzise.collections.ArrayReferenceList;
 import de.xzise.metainterfaces.ConsoleCommandWrapper;
 import de.xzise.metainterfaces.LinesCountable;
 import de.xzise.metainterfaces.Nameable;
@@ -1116,72 +1116,11 @@ public final class MinecraftUtil {
      *            Searched array.
      * @return the first position found.
      * @since 1.0
+     * @deprecated Use {@link ArrayReferenceList#indexOf(Object, Object...)} instead.
      */
+    @Deprecated
     public static <T> int indexOf(T o, T[] a) {
-        return indexOf(o, a, CLASSIC_EQUAL_CHECKER);
-    }
-
-    /**
-     * Tests where the first object is inside the array.
-     * 
-     * @param o
-     *            Searched object.
-     * @param a
-     *            Searched array.
-     * @param checker Object which checks if two objects are equals.
-     * @return the first position found.
-     * @since 1.3
-     */
-    public static <T> int indexOf(T o, T[] a, EqualCheck<T> checker) {
-        int idx = 0;
-        for (T t : a) {
-            if (checker.equals(o, t)) {
-                return idx;
-            }
-            idx++;
-        }
-        return -1;
-    }
-
-    public static interface EqualCheck<T> {
-        boolean equals(T a, T b);
-    }
-
-    public static class ComparatorEqualChecker<T> implements EqualCheck<T> {
-        private final Comparator<T> comparator;
-
-        public ComparatorEqualChecker(Comparator<T> comparator) {
-            this.comparator = comparator;
-        }
-
-        @Override
-        public boolean equals(T a, T b) {
-            return this.comparator.compare(a, b) == 0;
-        }
-    }
-
-    public static final ClassicEqualChecker CLASSIC_EQUAL_CHECKER = new ClassicEqualChecker();
-    public static class ClassicEqualChecker implements EqualCheck<Object> {
-        @Override
-        public boolean equals(Object a, Object b) {
-            return MinecraftUtil.equals(a, b);
-        }
-    }
-
-//    public static final ComparableEqualChecker<? extends Comparable<?>> COMPARABLE_EQUAL_CHECKER = new ComparableEqualChecker();
-    public static class ComparableEqualChecker<T extends Comparable<T>> implements EqualCheck<T> {
-        @Override
-        public boolean equals(T a, T b) {
-            return a == null ? b == null : a.compareTo(b) == 0;
-        }
-    }
-
-    public static final StringIgnoreCaseEqualChecker STRING_IGNORE_CASE_EQUAL_CHECKER = new StringIgnoreCaseEqualChecker();
-    public static class StringIgnoreCaseEqualChecker implements EqualCheck<String> {
-        @Override
-        public boolean equals(String a, String b) {
-            return a == null ? b == null : a.equalsIgnoreCase(b);
-        }
+        return ArrayReferenceList.indexOf(o, a);
     }
 
     public static <T> T replaceNull(T value, T nullReplacement) {
@@ -1194,21 +1133,11 @@ public final class MinecraftUtil {
      * @param a Searched array.
      * @return if the object is in the array.
      * @since 1.0
+     * @deprecated Use {@link ArrayReferenceList#contains(Object, Object[])} instead.
      */
+    @Deprecated
     public static <T> boolean contains(T o, T[] a) {
-        return MinecraftUtil.indexOf(o, a) >= 0;
-    }
-
-    /**
-     * Returns if the tested object <code>o</code> is in the array <code>a</code>.
-     * @param o Searched object.
-     * @param a Searched array.
-     * @param checker Object which checks if two objects are equals.
-     * @return if the object is in the array.
-     * @since 1.3
-     */
-    public static <T> boolean contains(T o, T[] a, EqualCheck<T> checker) {
-        return MinecraftUtil.indexOf(o, a, checker) >= 0;
+        return ArrayReferenceList.contains(o, a);
     }
 
     public static interface ChanceElement<T> {

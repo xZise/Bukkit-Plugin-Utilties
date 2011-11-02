@@ -75,13 +75,9 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         if (result != null) {
             return result;
         } else {
-            if (permission instanceof SuperPerm) {
-                try {
-                    return sender.hasPermission(permission.getName());
-                } catch (NoSuchMethodError e) {
-                    return hasByDefault(sender, permission.getDefault());
-                }
-            } else {
+            try {
+                return sender.hasPermission(permission.getName());
+            } catch (NoSuchMethodError e) {
                 return hasByDefault(sender, permission.getDefault());
             }
         }

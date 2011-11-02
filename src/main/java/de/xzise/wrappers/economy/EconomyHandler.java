@@ -23,7 +23,7 @@ import de.xzise.wrappers.economy.Essentials;
 import de.xzise.wrappers.economy.iConomyFactory;
 
 public class EconomyHandler extends Handler<EconomyWrapper> {
-    
+
     public enum PayResult {
         /** The price was paid. */
         PAID,
@@ -32,102 +32,116 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         /** The price couldn't paid, because the player hasn't enough. */
         NOT_ENOUGH;
     }
-    
+
     public static final Map<String, EconomyWrapperFactory> FACTORIES = new HashMap<String, EconomyWrapperFactory>();
-    
+
     static {
         FACTORIES.put("BOSEconomy", new BOSEcon0.Factory());
         FACTORIES.put("iConomy", new iConomyFactory());
         FACTORIES.put("Essentials", new Essentials.Factory());
         FACTORIES.put("MineConomy", new MineConomy.Factory());
     }
-    
+
     public static final AccountWrapper NULLARY_ACCOUNT = new AccountWrapper() {
-        
+
         @Override
         public boolean hasEnough(double price) {
             return false;
         }
-        
+
         @Override
-        public void add(double price) {}
+        public void add(double price) {
+        }
 
         @Override
         public double getBalance() {
             return 0;
         }
     };
-    
+
     private AccountWrapper tax = NULLARY_ACCOUNT;
-    private Methods methods = null;
+    private final boolean useMethods;
     private String economyBaseName;
+    private final PluginManager pluginManager;
 
     public EconomyHandler(PluginManager pluginManager, String economyPluginName, String economyBaseName, XLogger logger) {
         super(FACTORIES, pluginManager, "economy", economyPluginName, logger);
         this.economyBaseName = economyBaseName;
+        this.pluginManager = pluginManager;
+        Methods m = null;
         try {
-            this.methods = new Methods();
+            Methods.hasMethod();
+            m = new Methods();
         } catch (NoClassDefFoundError e) {
-            this.methods = null;
             this.logger.info("No Register found. Deactivating Register support.");
+        } catch (IncompatibleClassChangeError e) {
+            this.logger.info("Outdated Register found. Deactivating Register support.");
         }
+        this.useMethods = m != null;
         this.setBaseAccount();
     }
 
     /**
-     * Pays for an action if the sender has enough money. If the sender is not a player no money will be transfered.
-     * @param sender The paying sender.
-     * @param reciever Optional reciever of the price. If null only the basic price is to pay.
-     * @param price The amount of money which the reciever get.
-     * @param basic The basic price like an tax.
+     * Pays for an action if the sender has enough money. If the sender is not a
+     * player no money will be transfered.
+     * 
+     * @param sender
+     *            The paying sender.
+     * @param reciever
+     *            Optional reciever of the price. If null only the basic price
+     *            is to pay.
+     * @param price
+     *            The amount of money which the reciever get.
+     * @param basic
+     *            The basic price like an tax.
      * @return If the price could be paid or if there was nothing to pay.
      */
     public PayResult pay(CommandSender sender, String reciever, double price, double basic) {
         if (this.getWrapper() != null) {
-           Player player = MinecraftUtil.getPlayer(sender);
-           if (player != null) {
-               AccountWrapper executor = this.getAccount(player.getName());
-               // Not negative
-               //TODO: Add option if allow not negatives
-               if (executor.hasEnough(price + basic)) {    
-                   executor.add(-price -basic);
-                   this.tax.add(basic);
-                   if (MinecraftUtil.isSet(reciever)) {
-                       AccountWrapper owner = this.getAccount(reciever);
-                       owner.add(price);
-                   }
-                   return PayResult.PAID;
-               } else {
-                   return PayResult.NOT_ENOUGH;
-               }
-           } else {
-               this.logger.info("Couldn't pay action, because the executor is not a player.");
-           }
+            Player player = MinecraftUtil.getPlayer(sender);
+            if (player != null) {
+                AccountWrapper executor = this.getAccount(player.getName());
+                // Not negative
+                // TODO: Add option if allow not negatives
+                if (executor.hasEnough(price + basic)) {
+                    executor.add(-price - basic);
+                    this.tax.add(basic);
+                    if (MinecraftUtil.isSet(reciever)) {
+                        AccountWrapper owner = this.getAccount(reciever);
+                        owner.add(price);
+                    }
+                    return PayResult.PAID;
+                } else {
+                    return PayResult.NOT_ENOUGH;
+                }
+            } else {
+                this.logger.info("Couldn't pay action, because the executor is not a player.");
+            }
         } else if (price > 0) {
             sender.sendMessage(ChatColor.RED + "You should pay for this warp. But no economy plugin found.");
         }
         return PayResult.UNABLE;
     }
-    
+
     private final AccountWrapper getAccount(String name) {
         return this.getWrapper().getAccount(name);
     }
-    
+
     public double getBalance(String name) {
         AccountWrapper acc = getAccount(name);
         return acc == null ? 0 : acc.getBalance();
     }
-    
+
     public PayResult pay(CommandSender sender, double basic) {
         return this.pay(sender, null, 0, basic);
     }
-    
+
     public String format(double price) {
         String result = null;
         if (this.isActive()) {
             result = this.getWrapper().format(price);
         }
-        
+
         if (result == null) {
             DecimalFormat fakeForm = new DecimalFormat("#,##0.##");
             String fakeFormed = fakeForm.format(price);
@@ -139,14 +153,14 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         }
         return result;
     }
-    
+
     public void reloadConfig(String economyPluginName, String economyBaseName) {
         this.economyBaseName = economyBaseName;
         this.setPluginName(economyPluginName);
         this.load();
         this.setBaseAccount();
     }
-    
+
     private void setBaseAccount() {
         if (MinecraftUtil.isSet(this.economyBaseName) && this.isActive()) {
             this.tax = this.getWrapper().getAccount(this.economyBaseName);
@@ -154,16 +168,16 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
             this.tax = NULLARY_ACCOUNT;
         }
     }
-    
+
     @Override
     protected void loaded() {
         this.setBaseAccount();
     }
-    
+
     @Override
     protected boolean customLoad(Plugin plugin) {
-        if (this.methods != null && !this.methods.hasMethod() && this.methods.setMethod(plugin)) {
-            this.setWrapper(new MethodWrapper(this.methods.getMethod(), plugin));
+        if (this.useMethods && !Methods.hasMethod() && Methods.setMethod(this.pluginManager)) {
+            this.setWrapper(MethodWrapper.create(Methods.getMethod()));
             return true;
         } else {
             return false;

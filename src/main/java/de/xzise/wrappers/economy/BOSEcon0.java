@@ -28,11 +28,13 @@ public class BOSEcon0 implements EconomyWrapper {
             return this.getBalance() >= price;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public void add(double price) {
             this.economy.addPlayerMoney(this.name, (int) Math.round(price), false);
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public double getBalance() {
             return this.economy.getPlayerMoney(this.name);

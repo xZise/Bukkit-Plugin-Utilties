@@ -9,11 +9,11 @@ public class MethodWrapper implements EconomyWrapper {
 
     private final Method method;
     private final Plugin plugin;
-    
+
     public final class MethodAcc implements AccountWrapper {
-        
+
         private final MethodAccount method;
-        
+
         public MethodAcc(MethodAccount method) {
             this.method = method;
         }
@@ -32,14 +32,22 @@ public class MethodWrapper implements EconomyWrapper {
         public double getBalance() {
             return this.method.balance();
         }
-        
+
     }
-    
+
     public MethodWrapper(Method method, Plugin plugin) {
         this.method = method;
         this.plugin = plugin;
     }
-    
+
+    public static MethodWrapper create(Method method) {
+        if (method != null && method.getPlugin() instanceof Plugin) {
+            return new MethodWrapper(method, (Plugin) method.getPlugin());
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public AccountWrapper getAccount(String name) {
         return new MethodAcc(this.method.getAccount(name));

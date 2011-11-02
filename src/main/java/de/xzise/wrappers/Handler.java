@@ -98,7 +98,7 @@ public class Handler<W extends Wrapper> {
                                 this.logger.warning("Error while loading the plugin " + pdf.getFullName() + " into " + this.type + " system.");
                                 this.logger.warning("Error message: " + e.getMessage());
                                 this.wrapper = null;
-                            } catch (Exception e) {
+                            } catch (Throwable e) {
                                 this.logger.warning("Unspecified error while loading the plugin " + pdf.getFullName() + " into " + this.type + " system.");
                                 this.logger.warning("Error message: '" + e.getMessage() + "' of '" + e.getClass().getSimpleName() + "'");
                                 this.wrapper = null;

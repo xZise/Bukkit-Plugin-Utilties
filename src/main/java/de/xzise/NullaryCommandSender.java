@@ -90,4 +90,9 @@ public final class NullaryCommandSender implements CommandSender {
     @Override
     public void setOp(boolean value) {}
 
+    @Override
+    public String getName() {
+        return null;
+    }
+
 }

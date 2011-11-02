@@ -73,12 +73,17 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
             this.logger.info("PermissionsManager permission check wasn't supported by this plugin.");
         }
         if (result != null) {
+            this.logger.info("Checked permission '" + permission.getName() + "' (Def: " + permission.getDefault() + ") and wrapper returned " + result);
             return result;
         } else {
             try {
-                return sender.hasPermission(permission.getName());
+                boolean result2 = sender.hasPermission(permission.getName());
+                this.logger.info("Checked permission '" + permission.getName() + "' (Def: " + permission.getDefault() + ") and SuperPerms returned " + result2);
+                return result2;
             } catch (NoSuchMethodError e) {
-                return hasByDefault(sender, permission.getDefault());
+                boolean result2 = hasByDefault(sender, permission.getDefault());
+                this.logger.info("Checked permission '" + permission.getName() + "' (Def: " + permission.getDefault() + ") and returned default " + result2);
+                return result2;
             }
         }
     }

@@ -1,3 +1,20 @@
+/*
+ * This file is part of Bukkit Plugin Utilities.
+ * 
+ * Bukkit Plugin Utilities is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ * 
+ * Foobar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.xzise.wrappers.permissions;
 
 import java.util.Collection;
@@ -134,15 +151,15 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
             return permission.getDefault();
         }
     }
-    
+
     public String getString(CommandSender sender, Permission<String> permission) {
         return this.getString(sender, permission, true);
     }
-    
+
     public String getUserString(CommandSender sender, Permission<String> permission) {
         return this.getString(sender, permission, false);
     }
-    
+
     private String getString(CommandSender sender, Permission<String> permission, boolean recursive) {
         String result;
         try {
@@ -157,7 +174,7 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
             return permission.getDefault();
         }
     }
-    
+
     public String getString(String world, String groupname, Permission<String> permission) {
         String result;
         try {
@@ -183,5 +200,5 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         }
         return groups == null ? EMPTY_STRING_ARRAY : groups;
     }
-    
+
 }

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.xzise.bukkitutil</groupId>
   <artifactId>bukkitutil</artifactId>
-  <version>1.2.1</version>
+  <version>1.2.2</version>
   <name>Bukkit Plugin Utilities</name>
   <build>
 	<!-- finalName>BukkitPluginUtilities</finalName -->

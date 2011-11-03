@@ -1,3 +1,21 @@
+/*
+ * This file is part of Bukkit Plugin Utilities.
+ * 
+ * Bukkit Plugin Utilities is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ * 
+ * Bukkit Plugin Utilities is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Bukkit Plugin Utilities.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.xzise.wrappers.economy;
 
 import java.text.DecimalFormat;
@@ -14,13 +32,8 @@ import com.nijikokun.register.payment.Methods;
 
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
+import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.Handler;
-import de.xzise.wrappers.economy.AccountWrapper;
-import de.xzise.wrappers.economy.BOSEcon0;
-import de.xzise.wrappers.economy.EconomyWrapper;
-import de.xzise.wrappers.economy.EconomyWrapperFactory;
-import de.xzise.wrappers.economy.Essentials;
-import de.xzise.wrappers.economy.iConomyFactory;
 
 public class EconomyHandler extends Handler<EconomyWrapper> {
 
@@ -33,13 +46,13 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         NOT_ENOUGH;
     }
 
-    public static final Map<String, EconomyWrapperFactory> FACTORIES = new HashMap<String, EconomyWrapperFactory>();
+    public static final Map<String, Factory<EconomyWrapper>> FACTORIES = new HashMap<String, Factory<EconomyWrapper>>();
 
     static {
-        FACTORIES.put("BOSEconomy", new BOSEcon0.Factory());
+        FACTORIES.put("BOSEconomy", new BOSEcon0.FactoryImpl());
         FACTORIES.put("iConomy", new iConomyFactory());
-        FACTORIES.put("Essentials", new Essentials.Factory());
-        FACTORIES.put("MineConomy", new MineConomy.Factory());
+        FACTORIES.put("Essentials", new Essentials.FactoryImpl());
+        FACTORIES.put("MineConomy", new MineConomy.FactoryImpl());
     }
 
     public static final AccountWrapper NULLARY_ACCOUNT = new AccountWrapper() {

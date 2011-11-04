@@ -17,17 +17,12 @@
 
 package de.xzise.wrappers.economy;
 
+import de.xzise.wrappers.Factory;
+
 /**
- * A wrapper for accounts.
- * 
- * @author Fabian Neundorf
+ * @deprecated Use {@link Factory} with {@link EconomyWrapper} as generic instead.
  */
-public interface AccountWrapper {
-
-    boolean hasEnough(double price);
-
-    double getBalance();
-
-    void add(double price);
+@Deprecated
+public interface EconomyWrapperFactory extends Factory<EconomyWrapper> {
 
 }

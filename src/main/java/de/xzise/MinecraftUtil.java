@@ -6,13 +6,14 @@
  * published by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  * 
- * Foobar is distributed in the hope that it will be useful,
+ * Bukkit Plugin Utilities is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Bukkit Plugin Utilities.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
 package de.xzise;
@@ -25,6 +26,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -73,6 +75,13 @@ public final class MinecraftUtil {
 
     /** Default tolerance */
     public static final double EPSILON = 0.0000001;
+
+    /** 
+     * Default decimal format for prefixes. The decimal format is {@code #0.##}.
+     * @see DecimalFormat#DecimalFormat(String)
+     * @see MinecraftUtil#getFormatWithMinimumDecimals(int, int)
+     */
+    public static final DecimalFormat MAX_TWO_DECIMALS_FORMAT = MinecraftUtil.getFormatWithMinimumDecimals(0, 2);
 
     /** Version information */
     private static final int[] VERSION = new int[] { 1, 3, 0 };
@@ -627,6 +636,9 @@ public final class MinecraftUtil {
      * Returns the binary prefix for a specific value. Each step is 1024 units
      * bigger than the previous. The largest (defined) prefix is
      * <code>Yobi/Yi</code> where 1 YiB is 1*2^80 Bytes.
+     * <p>This method calls
+     * {@link MinecraftUtil#getBinaryPrefixValue(long, DecimalFormat)} with
+     * {@link MinecraftUtil#MAX_TWO_DECIMALS_FORMAT} as {@code format}</p>
      * 
      * @param value
      *            the prefixed value.
@@ -635,7 +647,7 @@ public final class MinecraftUtil {
      * @since 1.3
      */
     public static String getBinaryPrefixValue(long value) {
-        return getBinaryPrefixValue(value, 0);
+        return getBinaryPrefixValue(value, MAX_TWO_DECIMALS_FORMAT);
     }
 
     /**
@@ -645,13 +657,13 @@ public final class MinecraftUtil {
      * 
      * @param value
      *            the prefixed value.
-     * @param decimalPlaces
-     *            the decimal places in the result.
+     * @param format
+     *            the format of the result.
      * @return value and binary prefix (e.g. 2 KiB), where the value is lower
      *         than 1024 if the parameter is lower than 2^90.
      * @since 1.3
      */
-    public static String getBinaryPrefixValue(long value, int decimalPlaces) {
+    public static String getBinaryPrefixValue(long value, DecimalFormat format) {
         final int ITERATION_WIDTH = 10;
         final int ONE_ITERATION = 1 << ITERATION_WIDTH; // 2¹⁰
 
@@ -664,16 +676,20 @@ public final class MinecraftUtil {
                 iterations++;
             }
 
-            return round(((double) value) / ONE_ITERATION, decimalPlaces) + " " + PREFIXES[iterations + 1];
+            return format.format(((double) value) / ONE_ITERATION) + " " + PREFIXES[iterations + 1];
         } else {
-            return value + " ";
+            return format.format(value) + " ";
         }
     }
 
     /**
-     * Returns the SI prefix for a specific value. Each step is 1000 units
+     * <p>Returns the SI prefix for a specific value. Each step is 1000 units
      * bigger/smaller than the previous. The largest/smallest (defined) prefix
-     * is <code>Yotta/Yokto</code>. For example 1 Yottameter are 1*1000^8 meter.
+     * is <code>Yotta/Yokto</code>. For example 1 Yottameter are 1*1000^8
+     * meter.</p>
+     * <p>This method calls
+     * {@link MinecraftUtil#getSIPrefixValue(double, DecimalFormat)} with
+     * {@link MinecraftUtil#MAX_TWO_DECIMALS_FORMAT} as {@code format}</p>
      * 
      * @param value
      *            the prefixed value.
@@ -682,7 +698,7 @@ public final class MinecraftUtil {
      * @since 1.3
      */
     public static String getSIPrefixValue(double value) {
-        return getSIPrefixValue(value, 0);
+        return getSIPrefixValue(value, MAX_TWO_DECIMALS_FORMAT);
     }
 
     /**
@@ -692,41 +708,67 @@ public final class MinecraftUtil {
      * 
      * @param value
      *            the prefixed value.
-     * @param decimalPlaces
-     *            the decimal places in the result.
+     * @param format
+     *            the format of the result.
      * @return value and SI prefix (e.g. 2 kg), where the value is lower than
      *         1000 if the parameter is lower than 1000^9.
      * @since 1.3
      */
-    public static String getSIPrefixValue(double value, int decimalPlaces) {
+    public static String getSIPrefixValue(double value, DecimalFormat format) {
         final int ONE_ITERATION = 1000;
-        if (decimalPlaces < 0) {
-            throw new IllegalArgumentException("Decimal places has to be non negative.");
-        } else if (Math.abs(value) < 1) {
+        if (Math.abs(value) < 1) {
             final String[] PREFIXES = new String[] { "", "m", "µ", "n", "p", "f", "a", "z", "y" };
-            return getPrefix(value, 1 / (double) ONE_ITERATION, PREFIXES, decimalPlaces);
+            return getPrefix(value, 1 / (double) ONE_ITERATION, PREFIXES, format);
         } else {
             // Yes the k is lowercase
             final String[] PREFIXES = new String[] { "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
-            return getPrefix(value, ONE_ITERATION, PREFIXES, decimalPlaces);
+            return getPrefix(value, ONE_ITERATION, PREFIXES, format);
         }
     }
 
-    private static String getPrefix(double value, double factor, String[] prefixes, int decimalPlaces) {
+    private static String getPrefix(double value, double factor, String[] prefixes, DecimalFormat format) {
         int iterations = 0;
         while ((factor < 1 ? Math.abs(value) <= factor : Math.abs(value) >= factor) && iterations < prefixes.length - 1) {
             value /= factor;
             iterations++;
         }
-        return round(value, decimalPlaces) + " " + prefixes[iterations];
+        return format.format(value) + " " + prefixes[iterations];
     }
 
     /**
-     * Rounds the value with the specified number of decimal places. Basically a <code>Round(value&nbsp;*&nbsp;10^(decimal&nbsp;places))&nbsp;/&nbsp;10^(decimal&nbsp;places)</code>.
+     * Get a decimal format with a specific number of minimum and maximum decimals.
+     * @param minimumDecimals the number of minimal visible decimals.
+     * @param maximumDecimals the number of maximal visible decimals.
+     * @return a decimal format with shows the specified minimum and maximum decimals.
+     * @since 1.3
+     */
+    public static DecimalFormat getFormatWithMinimumDecimals(final int minimumDecimals, final int maximumDecimals) {
+        if (maximumDecimals < 0) {
+            throw new IllegalArgumentException("Negative maximum decimals are invalid.");
+        } else if (minimumDecimals < 0) {
+            throw new IllegalArgumentException("Negative minimum decimals are invalid.");
+        } else if (minimumDecimals > maximumDecimals) {
+            throw new IllegalArgumentException("The minimum decimals have to be lower than the maximum decimals.");
+        } else if (minimumDecimals == 0 && maximumDecimals == 0) {
+            return new DecimalFormat("#0");
+        } else {
+            char[] zeros = new char[maximumDecimals + 3];
+            Arrays.fill(zeros, '0');
+            Arrays.fill(zeros, minimumDecimals + 3, maximumDecimals + 3, '#');
+            // Always starts with: #0.
+            zeros[0] = '#'; zeros[1] = '0'; zeros[2] = '.';
+            System.out.println(new String(zeros));
+            return new DecimalFormat(new String(zeros));
+        }
+    }
+
+    /**
+     * Rounds the value with the specified number of decimal places. Basically a <code>Math.Round(value&nbsp;*&nbsp;10^(decimal&nbsp;places))&nbsp;/&nbsp;10^(decimal&nbsp;places)</code>.
      * @param value Value to round.
      * @param decimalPlaces Number of specified decimal places and have to be non negative.
      * @return the value with the specified number of decimal places.
      * @since 1.3
+     * @see Math#round(double)
      */
     public static double round(double value, int decimalPlaces) {
         if (decimalPlaces < 0) {
@@ -745,6 +787,7 @@ public final class MinecraftUtil {
      * @param decimalPlaces Number of specified decimal places and have to be non negative.
      * @return the value with the specified number of decimal places.
      * @since 1.3
+     * @see Math#round(float)
      */
     public static float round(float value, int decimalPlaces) {
         if (decimalPlaces < 0) {
@@ -819,7 +862,9 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Checks if both objects are equals. This includes a null check.
+     * <p>Checks if both objects are equals. This includes a null check.</p>
+     * <p>It has the same functionality as
+     * {@link Objects#equals(Object, Object)} in JDK 7.</p>
      * @param a first object.
      * @param b second object.
      * @return if both objects are equals or null.
@@ -831,9 +876,11 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Checks if both objects are equals. This includes a null check. An alias
+     * <p>Checks if both objects are equals. This includes a null check. An alias
      * method if java selects {@link MinecraftUtil#equals(double, double)} it
-     * is possible to use this method.
+     * is possible to use this method.</p>
+     * <p>It has the same functionality as
+     * {@link Objects#equals(Object, Object)} in JDK 7.</p>
      * @param a first object.
      * @param b second object.
      * @return if both objects are equals or null.
@@ -864,8 +911,7 @@ public final class MinecraftUtil {
      * @since 1.0
      */
     public static <T> T[] concat(T t, T... ts) {
-        int newLength = ts.length + 1;
-        T[] completed = createArray(ts.getClass(), newLength);
+        T[] completed = createArray(ts.getClass(), ts.length + 1);
         completed[0] = t;
         for (int i = 0; i < ts.length; i++) {
             completed[i + 1] = ts[i];
@@ -911,16 +957,20 @@ public final class MinecraftUtil {
         if (o == null) {
             return false;
         }
-        if (o instanceof String) {
-            return !((String) o).isEmpty();
-        } else if (o instanceof Collection<?>) {
-            return !((Collection<?>) o).isEmpty();
-        } else if (o instanceof Map<?, ?>) {
-            return !((Map<?, ?>) o).isEmpty();
-        } else if (o.getClass().isArray()) {
-            return java.lang.reflect.Array.getLength(o) > 0;
-        } else {
-            return true;
+        try {
+            if (o instanceof String) {
+                return !((String) o).isEmpty();
+            } else if (o instanceof Collection<?>) {
+                return !((Collection<?>) o).isEmpty();
+            } else if (o instanceof Map<?, ?>) {
+                return !((Map<?, ?>) o).isEmpty();
+            } else if (o.getClass().isArray()) {
+                return Array.getLength(o) > 0;
+            } else {
+                return true;
+            }
+        } catch (Exception e) {
+            return false;
         }
     }
 

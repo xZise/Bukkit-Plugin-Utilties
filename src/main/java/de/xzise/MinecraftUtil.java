@@ -904,19 +904,35 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Concatenate one element an a list of elements.
-     * @param t one element.
-     * @param ts an array of elements.
+     * Concatenate one element and a list of elements.
+     * @param first one element.
+     * @param array an array of elements.
      * @return an array with the element on the first place and the rest of the array following it.
      * @since 1.0
      */
-    public static <T> T[] concat(T t, T... ts) {
-        T[] completed = createArray(ts.getClass(), ts.length + 1);
-        completed[0] = t;
-        for (int i = 0; i < ts.length; i++) {
-            completed[i + 1] = ts[i];
+    public static <T> T[] concat(T first, T... array) {
+        T[] completed = createArray(array.getClass(), array.length + 1);
+        completed[0] = first;
+        for (int i = 0; i < array.length; i++) {
+            completed[i + 1] = array[i];
         }
         return completed;
+    }
+
+    /**
+     * Concatenate one integer and an array of integers.
+     * @param first new first integer.
+     * @param array following array of integer.
+     * @return an array with the element on the first place and the rest of the array following it.
+     * @since 1.3
+     */
+    public static int[] concat(int first, int... array) {
+        int[] result = new int[array.length + 1];
+        result[0] = first;
+        for (int i = 0; i < array.length; i++) {
+            result[i + 1] = array[i];
+        }
+        return result;
     }
 
     /**
@@ -1078,8 +1094,23 @@ public final class MinecraftUtil {
      * @since 1.0
      */
     public static Integer tryAndGetInteger(String string) {
+        return tryAndGetInteger(string, 10);
+    }
+
+    /**
+     * Tries to convert a string into an integer. If the string is invalid it
+     * returns <code>null</code>.
+     * 
+     * @param string
+     *            The string to be parsed.
+     * @param radix
+     *            The radix of the integer.
+     * @return The value if the string is valid, otherwise <code>null</code>.
+     * @since 1.3
+     */
+    public static Integer tryAndGetInteger(String string, int radix) {
         try {
-            return Integer.parseInt(string);
+            return Integer.parseInt(string, radix);
         } catch (NumberFormatException e) {
             return null;
         }
@@ -1517,5 +1548,42 @@ public final class MinecraftUtil {
             fileReader.close();
         }
         return lines;
+    }
+
+    /**
+     * Returns a value in the range of <code>{-1, 0, +1}</code>.
+     * 
+     * <blockquote>
+     * <table>
+     * <tr>
+     * <th>Input</th>
+     * <th>Output</th>
+     * </tr>
+     * <tr>
+     * <td><tt>&lt; 0</tt></td>
+     * <td><tt>-1</tt></td>
+     * </tr>
+     * <tr>
+     * <td><tt>= 0</tt></td>
+     * <td><tt>0</tt></td>
+     * </tr>
+     * <tr>
+     * <td><tt>&gt; 0</tt></td>
+     * <td><tt>+1</tt></td>
+     * </tr>
+     * </table>
+     * </blockquote>
+     * 
+     * @param value Input value.
+     * @return a value in the range of <code>{-1, 0, +1}</code>.
+     */
+    public static int sgn(int value) {
+        if (value < 0) {
+            return -1;
+        } else if (value > 0) {
+            return +1;
+        } else {
+            return 0;
+        }
     }
 }

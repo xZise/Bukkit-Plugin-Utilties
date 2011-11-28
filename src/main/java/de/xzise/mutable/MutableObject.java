@@ -16,15 +16,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.xzise;
+package de.xzise.mutable;
 
-/**
- * Simple callback interface. If you require version 1.3 use
- * {@link de.xzise.bukkit.util.callback.Callback} instead.
- * 
- * @since 1.0
- * @deprecated Use {@link de.xzise.bukkit.util.callback.Callback} instead.
- */
-public interface Callback<Result, Parameter> {
-    Result call(Parameter parameter);
+public class MutableObject<T> implements Mutable<T>{
+
+    private T value;
+
+    @Override
+    public void setValue(T t) {
+        this.value = t;
+    }
+
+    @Override
+    public T getValue() {
+        return this.value;
+    }
+
 }

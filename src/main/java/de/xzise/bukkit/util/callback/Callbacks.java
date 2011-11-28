@@ -16,15 +16,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.xzise;
+package de.xzise.bukkit.util.callback;
 
-/**
- * Simple callback interface. If you require version 1.3 use
- * {@link de.xzise.bukkit.util.callback.Callback} instead.
- * 
- * @since 1.0
- * @deprecated Use {@link de.xzise.bukkit.util.callback.Callback} instead.
- */
-public interface Callback<Result, Parameter> {
-    Result call(Parameter parameter);
+public final class Callbacks {
+
+    private Callbacks() {}
+
+    public static final ToStringCallback TO_STRING_CALLBACK = new ToStringCallback();
+    public static class ToStringCallback implements Callback<String, Object> {
+
+        @Override
+        public String call(Object parameter) {
+            return parameter == null ? "null" : parameter.toString();
+        }
+    }
 }

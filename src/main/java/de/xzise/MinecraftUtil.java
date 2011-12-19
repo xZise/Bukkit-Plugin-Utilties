@@ -69,15 +69,16 @@ public final class MinecraftUtil {
     /**
      * @deprecated Use {@link #PLAYER_LINES_COUNT} instead.
      */
-    //TODO: Remove in BPU 2
+    // TODO: Remove in BPU 2
     public static final int MAX_LINES_VISIBLE = PLAYER_LINES_COUNT;
     public static final int CONSOLE_LINES_COUNT = 30;
 
     /** Default tolerance */
     public static final double EPSILON = 0.0000001;
 
-    /** 
+    /**
      * Default decimal format for prefixes. The decimal format is {@code #0.##}.
+     * 
      * @see DecimalFormat#DecimalFormat(String)
      * @see MinecraftUtil#getFormatWithMinimumDecimals(int, int)
      */
@@ -96,6 +97,7 @@ public final class MinecraftUtil {
 
     /**
      * Returns the current version of BPU.
+     * 
      * @return the current version of BPU.
      * @since 1.3
      */
@@ -106,8 +108,11 @@ public final class MinecraftUtil {
     /**
      * Returns if the currently using version of BPU needs to be updated to fit
      * the specifications of the plugin.
-     * @param primary Primary number of version.
-     * @param secondary Secondary number of version.
+     * 
+     * @param primary
+     *            Primary number of version.
+     * @param secondary
+     *            Secondary number of version.
      * @return if BPU needs to be updated.
      * @since 1.3
      */
@@ -127,11 +132,14 @@ public final class MinecraftUtil {
 
     /**
      * Get maximum lines of the command sender.
-     * <ul><li>{@link ConsoleCommandSender}: {@link #CONSOLE_LINES_COUNT}</li>
+     * <ul>
+     * <li>{@link ConsoleCommandSender}: {@link #CONSOLE_LINES_COUNT}</li>
      * <li>{@link LinesCountable}: {@link LinesCountable#getMaxLinesVisible()}</li>
      * <li>Everything else (also players): {@link #PLAYER_LINES_COUNT}</li>
      * </ul>
-     * @param sender tested sender.
+     * 
+     * @param sender
+     *            tested sender.
      * @return maximum lines for the command sender.
      * @since 1.0
      */
@@ -146,9 +154,11 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Get the online player instance for the offline player. If the player isn't
-     * online it will return <code>null</code>.
-     * @param player the offline player instance.
+     * Get the online player instance for the offline player. If the player
+     * isn't online it will return <code>null</code>.
+     * 
+     * @param player
+     *            the offline player instance.
      * @return the online player instance.
      * @since 1.3
      */
@@ -160,7 +170,9 @@ public final class MinecraftUtil {
      * Returns the player instance for a command sender. If there is no way to
      * do this it will return <code>null</code>. It will unwrap the
      * {@link CommandSenderWrapper} chain.
-     * @param sender the tested command sender instance.
+     * 
+     * @param sender
+     *            the tested command sender instance.
      * @return the player instance.
      * @since 1.0
      */
@@ -222,7 +234,8 @@ public final class MinecraftUtil {
      * Returns a name in each case.
      * <ul>
      * <li>If the sender is a player it return the player name.</li>
-     * <li>If the sender is the console it will return {@link ConsoleCommandWrapper#NAME} (<code>[CONSOLE]</code>).</li>
+     * <li>If the sender is the console it will return
+     * {@link ConsoleCommandWrapper#NAME} (<code>[CONSOLE]</code>).</li>
      * <li>If the sender is Nameable it return this name.</li>
      * <li>In all other cases it will return the value of <code>somebody</code>.
      * </li>
@@ -392,16 +405,16 @@ public final class MinecraftUtil {
 
                 if (this.endNode != null) {
                     switch (this.endNode.getPermissionDefault()) {
-                    case TRUE :
+                    case TRUE:
                         trueNodes.add(fullName);
                         break;
-                    case NOT_OP :
+                    case NOT_OP:
                         nonOpNodes.add(fullName);
                         break;
-                    case OP :
+                    case OP:
                         opNodes.add(fullName);
                         break;
-                    case FALSE :
+                    case FALSE:
                         falseNodes.add(fullName);
                         break;
                     }
@@ -480,7 +493,7 @@ public final class MinecraftUtil {
 
     @SuppressWarnings("unchecked")
     public static <T> List<T> getOneElementList(T element) {
-        return element == null ? Lists.<T>newArrayListWithCapacity(0) : Lists.newArrayList(element);
+        return element == null ? Lists.<T> newArrayListWithCapacity(0) : Lists.newArrayList(element);
     }
 
     public static String[] parseLine(String line) {
@@ -566,10 +579,11 @@ public final class MinecraftUtil {
      * @param escape
      *            The character which acts as escape character.
      * @param trimQuotes
-     *            If set to true, everything before and after the quote character will be removed. 
+     *            If set to true, everything before and after the quote
+     *            character will be removed.
      * @return The parsed segments.
      */
-    //TODO: Remove everything after the quote!
+    // TODO: Remove everything after the quote!
     public static String[] parseLine(String line, char delimiter, char quote, char escape, Character bracketStart, Character bracketEnd, boolean trimQuotes) {
         boolean quoted = false;
         boolean escaped = false;
@@ -633,12 +647,33 @@ public final class MinecraftUtil {
      */
 
     /**
+     * Returns a value which is within the lower and upper borders. The borders
+     * are inclusive. So if following is applying it returns the value,
+     * otherwise the nearest border: <blockquote>
+     * <code>lower &lt;= value &lt;= upper</code></blockquote>
+     * 
+     * @param lower
+     *            Lower inclusive border.
+     * @param upper
+     *            Upper inclusive border.
+     * @param value
+     *            Value which will be tested.
+     * @return The value within the given borders.
+     * @since 1.3
+     */
+    public static <T extends Comparable<T>> T between(T lower, T upper, T value) {
+        return (lower.compareTo(value) < 0) ? lower : ((upper.compareTo(value) > 0) ? upper : value);
+    }
+
+    /**
      * Returns the binary prefix for a specific value. Each step is 1024 units
      * bigger than the previous. The largest (defined) prefix is
      * <code>Yobi/Yi</code> where 1 YiB is 1*2^80 Bytes.
-     * <p>This method calls
+     * <p>
+     * This method calls
      * {@link MinecraftUtil#getBinaryPrefixValue(long, DecimalFormat)} with
-     * {@link MinecraftUtil#MAX_TWO_DECIMALS_FORMAT} as {@code format}</p>
+     * {@link MinecraftUtil#MAX_TWO_DECIMALS_FORMAT} as {@code format}
+     * </p>
      * 
      * @param value
      *            the prefixed value.
@@ -683,13 +718,16 @@ public final class MinecraftUtil {
     }
 
     /**
-     * <p>Returns the SI prefix for a specific value. Each step is 1000 units
+     * <p>
+     * Returns the SI prefix for a specific value. Each step is 1000 units
      * bigger/smaller than the previous. The largest/smallest (defined) prefix
-     * is <code>Yotta/Yokto</code>. For example 1 Yottameter are 1*1000^8
-     * meter.</p>
-     * <p>This method calls
+     * is <code>Yotta/Yokto</code>. For example 1 Yottameter are 1*1000^8 meter.
+     * </p>
+     * <p>
+     * This method calls
      * {@link MinecraftUtil#getSIPrefixValue(double, DecimalFormat)} with
-     * {@link MinecraftUtil#MAX_TWO_DECIMALS_FORMAT} as {@code format}</p>
+     * {@link MinecraftUtil#MAX_TWO_DECIMALS_FORMAT} as {@code format}
+     * </p>
      * 
      * @param value
      *            the prefixed value.
@@ -736,10 +774,15 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Get a decimal format with a specific number of minimum and maximum decimals.
-     * @param minimumDecimals the number of minimal visible decimals.
-     * @param maximumDecimals the number of maximal visible decimals.
-     * @return a decimal format with shows the specified minimum and maximum decimals.
+     * Get a decimal format with a specific number of minimum and maximum
+     * decimals.
+     * 
+     * @param minimumDecimals
+     *            the number of minimal visible decimals.
+     * @param maximumDecimals
+     *            the number of maximal visible decimals.
+     * @return a decimal format with shows the specified minimum and maximum
+     *         decimals.
      * @since 1.3
      */
     public static DecimalFormat getFormatWithMinimumDecimals(final int minimumDecimals, final int maximumDecimals) {
@@ -756,16 +799,23 @@ public final class MinecraftUtil {
             Arrays.fill(zeros, '0');
             Arrays.fill(zeros, minimumDecimals + 3, maximumDecimals + 3, '#');
             // Always starts with: #0.
-            zeros[0] = '#'; zeros[1] = '0'; zeros[2] = '.';
-            System.out.println(new String(zeros));
+            zeros[0] = '#';
+            zeros[1] = '0';
+            zeros[2] = '.';
             return new DecimalFormat(new String(zeros));
         }
     }
 
     /**
-     * Rounds the value with the specified number of decimal places. Basically a <code>Math.Round(value&nbsp;*&nbsp;10^(decimal&nbsp;places))&nbsp;/&nbsp;10^(decimal&nbsp;places)</code>.
-     * @param value Value to round.
-     * @param decimalPlaces Number of specified decimal places and have to be non negative.
+     * Rounds the value with the specified number of decimal places. Basically a
+     * <code>Math.Round(value&nbsp;*&nbsp;10^(decimal&nbsp;places))&nbsp;/&nbsp;10^(decimal&nbsp;places)</code>
+     * .
+     * 
+     * @param value
+     *            Value to round.
+     * @param decimalPlaces
+     *            Number of specified decimal places and have to be non
+     *            negative.
      * @return the value with the specified number of decimal places.
      * @since 1.3
      * @see Math#round(double)
@@ -782,9 +832,15 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Rounds the value with the specified number of decimal places. Basically a <code>Round(value&nbsp;*&nbsp;10^(decimal&nbsp;places))&nbsp;/&nbsp;10^(decimal&nbsp;places)</code>.
-     * @param value Value to round.
-     * @param decimalPlaces Number of specified decimal places and have to be non negative.
+     * Rounds the value with the specified number of decimal places. Basically a
+     * <code>Round(value&nbsp;*&nbsp;10^(decimal&nbsp;places))&nbsp;/&nbsp;10^(decimal&nbsp;places)</code>
+     * .
+     * 
+     * @param value
+     *            Value to round.
+     * @param decimalPlaces
+     *            Number of specified decimal places and have to be non
+     *            negative.
      * @return the value with the specified number of decimal places.
      * @since 1.3
      * @see Math#round(float)
@@ -792,7 +848,8 @@ public final class MinecraftUtil {
     public static float round(float value, int decimalPlaces) {
         if (decimalPlaces < 0) {
             throw new IllegalArgumentException("Decimal places has to be non negative.");
-        }  if (decimalPlaces == 0) {
+        }
+        if (decimalPlaces == 0) {
             return Math.round(value);
         } else {
             final float factor = (float) Math.pow(10, decimalPlaces);
@@ -841,9 +898,13 @@ public final class MinecraftUtil {
 
     /**
      * Checks if two doubles a nearly equal with the given tolerance.
-     * @param a first double.
-     * @param b second double.
-     * @param tolerance the tolerance.
+     * 
+     * @param a
+     *            first double.
+     * @param b
+     *            second double.
+     * @param tolerance
+     *            the tolerance.
      * @return if both doubles are nearly equals within the tolerance.
      * @since 1.3
      */
@@ -853,8 +914,11 @@ public final class MinecraftUtil {
 
     /**
      * Checks if two doubles a nearly equal. The tolerance is {@link #EPSILON}.
-     * @param a first double.
-     * @param b second double.
+     * 
+     * @param a
+     *            first double.
+     * @param b
+     *            second double.
      * @return if both doubles are nearly equals within the tolerance.
      */
     public static boolean equals(double a, double b) {
@@ -862,11 +926,18 @@ public final class MinecraftUtil {
     }
 
     /**
-     * <p>Checks if both objects are equals. This includes a null check.</p>
-     * <p>It has the same functionality as
-     * {@link Objects#equals(Object, Object)} in JDK 7.</p>
-     * @param a first object.
-     * @param b second object.
+     * <p>
+     * Checks if both objects are equals. This includes a null check.
+     * </p>
+     * <p>
+     * It has the same functionality as {@link Objects#equals(Object, Object)}
+     * in JDK 7.
+     * </p>
+     * 
+     * @param a
+     *            first object.
+     * @param b
+     *            second object.
      * @return if both objects are equals or null.
      * @since 1.2
      * @see MinecraftUtil#equalObjects(Object, Object)
@@ -876,13 +947,20 @@ public final class MinecraftUtil {
     }
 
     /**
-     * <p>Checks if both objects are equals. This includes a null check. An alias
-     * method if java selects {@link MinecraftUtil#equals(double, double)} it
-     * is possible to use this method.</p>
-     * <p>It has the same functionality as
-     * {@link Objects#equals(Object, Object)} in JDK 7.</p>
-     * @param a first object.
-     * @param b second object.
+     * <p>
+     * Checks if both objects are equals. This includes a null check. An alias
+     * method if java selects {@link MinecraftUtil#equals(double, double)} it is
+     * possible to use this method.
+     * </p>
+     * <p>
+     * It has the same functionality as {@link Objects#equals(Object, Object)}
+     * in JDK 7.
+     * </p>
+     * 
+     * @param a
+     *            first object.
+     * @param b
+     *            second object.
      * @return if both objects are equals or null.
      * @since 1.3
      * @see MinecraftUtil#equals(Object, Object)
@@ -893,8 +971,11 @@ public final class MinecraftUtil {
 
     /**
      * Creates a new array of the given length and type.
-     * @param clazz class of the elements.
-     * @param newLength new length of the array.
+     * 
+     * @param clazz
+     *            class of the elements.
+     * @param newLength
+     *            new length of the array.
      * @return new array with the given length and type.
      * @since 1.3
      */
@@ -905,9 +986,13 @@ public final class MinecraftUtil {
 
     /**
      * Concatenate one element and a list of elements.
-     * @param first one element.
-     * @param array an array of elements.
-     * @return an array with the element on the first place and the rest of the array following it.
+     * 
+     * @param first
+     *            one element.
+     * @param array
+     *            an array of elements.
+     * @return an array with the element on the first place and the rest of the
+     *         array following it.
      * @since 1.0
      */
     public static <T> T[] concat(T first, T... array) {
@@ -921,9 +1006,13 @@ public final class MinecraftUtil {
 
     /**
      * Concatenate one integer and an array of integers.
-     * @param first new first integer.
-     * @param array following array of integer.
-     * @return an array with the element on the first place and the rest of the array following it.
+     * 
+     * @param first
+     *            new first integer.
+     * @param array
+     *            following array of integer.
+     * @return an array with the element on the first place and the rest of the
+     *         array following it.
      * @since 1.3
      */
     public static int[] concat(int first, int... array) {
@@ -933,6 +1022,32 @@ public final class MinecraftUtil {
             result[i + 1] = array[i];
         }
         return result;
+    }
+
+    /**
+     * Returns the first value of an array. If the array is <code>null</code> or
+     * empty it returns null.
+     * @param array the array.
+     * @return the first value.
+     * @since 1.3
+     */
+    public static <T> T getFirst(T[] array) {
+        return getFirst(array, null);
+    }
+
+    /**
+     * Returns the first value of an array. If the array is <code>null</code> or
+     * empty it returns the value from <code>def</code>.
+     * @param array the array.
+     * @return the first value.
+     * @since 1.3
+     */
+    public static <T> T getFirst(T[] array, T def) {
+        if (MinecraftUtil.isSet(array)) {
+            return array[0];
+        } else {
+            return def;
+        }
     }
 
     /**
@@ -1019,10 +1134,14 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Returns the width where the base could be dynamically defined. If the base
-     * is a power of 2 the {@link #getWidthWithBinaryBase(int, int)} would be faster.
-     * @param number the given number.
-     * @param base the given base.
+     * Returns the width where the base could be dynamically defined. If the
+     * base is a power of 2 the {@link #getWidthWithBinaryBase(int, int)} would
+     * be faster.
+     * 
+     * @param number
+     *            the given number.
+     * @param base
+     *            the given base.
      * @return the “width” of the given number with the given base.
      * @since 1.0
      */
@@ -1036,9 +1155,13 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Returns the width where the base is a power of 2 (<a href="http://oeis.org/A000079">oeis.org/A000079</a>).
-     * @param number the given number.
-     * @param baseBit base bit. The base will be 2^(base bit).
+     * Returns the width where the base is a power of 2 (<a
+     * href="http://oeis.org/A000079">oeis.org/A000079</a>).
+     * 
+     * @param number
+     *            the given number.
+     * @param baseBit
+     *            base bit. The base will be 2^(base bit).
      * @return the “width” of the given number with the given base.
      * @since 1.3
      */
@@ -1055,8 +1178,11 @@ public final class MinecraftUtil {
     /**
      * Toggles an entry in a collection. So if the entry is in the collection it
      * will be removed and if it isn't in the collection it will be added.
-     * @param entry tested entry.
-     * @param collection tested collection.
+     * 
+     * @param entry
+     *            tested entry.
+     * @param collection
+     *            tested collection.
      * @return If the entry was added.
      * @since 1.3
      */
@@ -1070,16 +1196,19 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Toggles an entry in a list. So if the entry is in the list it
-     * will be removed and if it isn't in the list it will be added.
-     * @param entry tested entry.
-     * @param list tested list.
+     * Toggles an entry in a list. So if the entry is in the list it will be
+     * removed and if it isn't in the list it will be added.
+     * 
+     * @param entry
+     *            tested entry.
+     * @param list
+     *            tested list.
      * @return If the entry was added.
      * @deprecated Use {@link #toggleEntry(Object, Collection)} instead.
      * @since 1.0
      */
     @Deprecated
-    //TODO: Remove in BPU 2! Spelled wrong.
+    // TODO: Remove in BPU 2! Spelled wrong.
     public static <T> boolean toogleEntry(T entry, List<T> list) {
         return toggleEntry(entry, list);
     }
@@ -1186,6 +1315,7 @@ public final class MinecraftUtil {
 
     /**
      * Truncates the specified value.
+     * 
      * @param value
      * @return truncated value.
      * @since 1.0
@@ -1195,9 +1325,11 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Get all decimal places of the specified value. For example <code>4.2</code> would return
-     * <code>0.2</code>.
-     * @param value Specified value.
+     * Get all decimal places of the specified value. For example
+     * <code>4.2</code> would return <code>0.2</code>.
+     * 
+     * @param value
+     *            Specified value.
      * @return decimal places of the specified value.
      * @since 1.0
      */
@@ -1214,7 +1346,8 @@ public final class MinecraftUtil {
      *            Searched array.
      * @return the first position found.
      * @since 1.0
-     * @deprecated Use {@link ArrayReferenceList#indexOf(Object, Object...)} instead.
+     * @deprecated Use {@link ArrayReferenceList#indexOf(Object, Object...)}
+     *             instead.
      */
     @Deprecated
     public static <T> int indexOf(T o, T[] a) {
@@ -1226,12 +1359,17 @@ public final class MinecraftUtil {
     }
 
     /**
-     * Returns if the tested object <code>o</code> is in the array <code>a</code>.
-     * @param o Searched object.
-     * @param a Searched array.
+     * Returns if the tested object <code>o</code> is in the array
+     * <code>a</code>.
+     * 
+     * @param o
+     *            Searched object.
+     * @param a
+     *            Searched array.
      * @return if the object is in the array.
      * @since 1.0
-     * @deprecated Use {@link ArrayReferenceList#contains(Object, Object[])} instead.
+     * @deprecated Use {@link ArrayReferenceList#contains(Object, Object[])}
+     *             instead.
      */
     @Deprecated
     public static <T> boolean contains(T o, T[] a) {
@@ -1426,7 +1564,7 @@ public final class MinecraftUtil {
      * @deprecated {@link Arrays#copyOf(Object[], int)}
      */
     @Deprecated
-    //TODO: Remove with BPU 2
+    // TODO: Remove with BPU 2
     public static <T> T[] subArray(T[] t, int start) {
         return Arrays.copyOf(t, start);
     }
@@ -1442,21 +1580,22 @@ public final class MinecraftUtil {
      * @deprecated Use {@link #createReverseEnumMap(Class, Callback)} instead.
      */
     @Deprecated
-    //TODO: Remove with BPU 2
+    // TODO: Remove with BPU 2
     public static <K, V extends Enum<?>> Map<K, V> createEnumMap(Class<V> enumClass, Callback<K, ? super V> keys) {
         return createReverseEnumMap(enumClass, keys);
     }
 
     /**
-     * Creates an map, mapping an identifier to all values of an enum.
+     * Creates a map, mapping an identifier to all values of an enum.
      * 
      * @param enumClass
      *            The class of the enum.
      * @param keys
      *            The callback class defining a name for each enum.
      * @return A map mapping an identifier to an enum.
+     * @since 1.3
      */
-    public static <K, V extends Enum<?>> ImmutableMap<K, V> createReverseEnumMap(Class<V> enumClass, Callback<K, ? super V> keys) {
+    public static <K, V extends Enum<?>> ImmutableMap<K, V> createReverseEnumMap(Class<V> enumClass, de.xzise.bukkit.util.callback.Callback<K, ? super V> keys) {
         com.google.common.collect.ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
 
         for (V enumValue : enumClass.getEnumConstants()) {
@@ -1465,7 +1604,53 @@ public final class MinecraftUtil {
         return builder.build();
     }
 
-    public static <K, V extends Enum<?>> Map<K, V> createReverseMultiEnumMap(Class<V> enumClass, Callback<K[], ? super V> keys) {
+    /**
+     * Creates a map, mapping an identifier to all values of an enum. This
+     * returns a {@link HashMap} instance which prohibits usage of
+     * {@link ImmutableMap}.
+     * 
+     * @param enumClass
+     *            The class of the enum.
+     * @param keys
+     *            The callback class defining a name for each enum.
+     * @return A map mapping an identifier to an enum.
+     * @see #createReverseMutableEnumMap(Class,
+     *      de.xzise.bukkit.util.callback.Callback)
+     * @since 1.3
+     */
+    public static <K, V extends Enum<?>> HashMap<K, V> createReverseMutableEnumMap(Class<V> enumClass, de.xzise.bukkit.util.callback.Callback<K, ? super V> keys) {
+        return new HashMap<K, V>(createReverseEnumMap(enumClass, keys));
+    }
+
+    /**
+     * Creates a map, mapping an identifier to all values of an enum.
+     * 
+     * @param enumClass
+     *            The class of the enum.
+     * @param keys
+     *            The callback class defining a name for each enum.
+     * @return A map mapping an identifier to an enum.
+     * @deprecated Use
+     *             {@link #createReverseEnumMap(Class, de.xzise.bukkit.util.callback.Callback)}
+     *             instead which uses the new callback interface from
+     *             {@link de.xzise.bukkit.util.callback.Callback}.
+     */
+    @Deprecated
+    public static <K, V extends Enum<?>> ImmutableMap<K, V> createReverseEnumMap(Class<V> enumClass, de.xzise.Callback<K, ? super V> keys) {
+        return createReverseEnumMap(enumClass, new de.xzise.bukkit.util.callback.OldCallbackWrapper<K, V>(keys));
+    }
+
+    /**
+     * Creates a multi map, mapping multiple possible identifiers for all values
+     * of an enum.
+     * 
+     * @param enumClass
+     *            The class of the enum.
+     * @param keys
+     *            The callback class defining a name for each enum.
+     * @return A map mapping an identifier to an enum.
+     */
+    public static <K, V extends Enum<?>> Map<K, V> createReverseMultiEnumMap(Class<V> enumClass, de.xzise.bukkit.util.callback.Callback<K[], ? super V> keys) {
         Map<K, V> m = new HashMap<K, V>();
 
         for (V enumValue : enumClass.getEnumConstants()) {
@@ -1474,6 +1659,25 @@ public final class MinecraftUtil {
             }
         }
         return m;
+    }
+
+    /**
+     * Creates a multi map, mapping multiple possible identifiers for all values
+     * of an enum.
+     * 
+     * @param enumClass
+     *            The class of the enum.
+     * @param keys
+     *            The callback class defining a name for each enum.
+     * @return A map mapping an identifier to an enum.
+     * @deprecated Use
+     *             {@link #createReverseMultiEnumMap(Class, de.xzise.bukkit.util.callback.Callback)}
+     *             instead which uses the new callback interface from
+     *             {@link de.xzise.bukkit.util.callback.Callback}.
+     */
+    @Deprecated
+    public static <K, V extends Enum<?>> Map<K, V> createReverseMultiEnumMap(Class<V> enumClass, de.xzise.Callback<K[], ? super V> keys) {
+        return createReverseMultiEnumMap(enumClass, new de.xzise.bukkit.util.callback.OldCallbackWrapper<K[], V>(keys));
     }
 
     /*
@@ -1491,7 +1695,7 @@ public final class MinecraftUtil {
      * @deprecated Use {@link Maps#newHashMap()} instead.
      */
     @Deprecated
-    //TODO: Remove with BPU 2
+    // TODO: Remove with BPU 2
     public static <K, V> HashMap<K, V> createHashMap() {
         return new HashMap<K, V>();
     }
@@ -1505,7 +1709,7 @@ public final class MinecraftUtil {
      * @deprecated Use {@link Maps#newEnumMap(Class)} instead.
      */
     @Deprecated
-    //TODO: Remove with BPU 2
+    // TODO: Remove with BPU 2
     public static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Class<K> keyType) {
         return new EnumMap<K, V>(keyType);
     }
@@ -1513,12 +1717,14 @@ public final class MinecraftUtil {
     /**
      * Creates an immutable map of the given map. If the given map is null it
      * returns an empty immutable map.
-     * @param map the map on which the immutable bases on.
+     * 
+     * @param map
+     *            the map on which the immutable bases on.
      * @return the immutable map bases on the map.
      * @since 1.3
      */
     public static <K, V> ImmutableMap<K, V> createImmutableMap(Map<K, V> map) {
-        return map == null ? ImmutableMap.<K, V>of() : ImmutableMap.copyOf(map);
+        return map == null ? ImmutableMap.<K, V> of() : ImmutableMap.copyOf(map);
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> createEnumMap(Map<K, V> map, Class<K> keyType) {
@@ -1531,9 +1737,12 @@ public final class MinecraftUtil {
 
     /**
      * Reads all lines of a file into a string list.
-     * @param f file object.
+     * 
+     * @param f
+     *            file object.
      * @return all lines of the file.
-     * @throws IOException if there were problems on reading the file.
+     * @throws IOException
+     *             if there were problems on reading the file.
      */
     public static List<String> readLines(File f) throws IOException {
         List<String> lines = new ArrayList<String>();
@@ -1574,7 +1783,8 @@ public final class MinecraftUtil {
      * </table>
      * </blockquote>
      * 
-     * @param value Input value.
+     * @param value
+     *            Input value.
      * @return a value in the range of <code>{-1, 0, +1}</code>.
      */
     public static int sgn(int value) {

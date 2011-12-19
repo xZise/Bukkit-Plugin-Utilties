@@ -106,6 +106,17 @@ public class ArrayReferenceList<E> extends AbstractList<E> implements RandomAcce
     }
 
     /**
+     * Returns if the tested character is in the characters array.
+     * @param character Searched character.
+     * @param characters Searched characters.
+     * @return if the character is in the array.
+     * @since 1.3
+     */
+    public static boolean contains(char character, char[] characters) {
+        return ArrayReferenceList.indexOf(character, characters) >= 0;
+    }
+
+    /**
      * Returns if the tested object <code>o</code> is in the array <code>a</code>.
      * @param o Searched object.
      * @param a Searched array.

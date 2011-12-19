@@ -29,9 +29,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import de.xzise.Callback;
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.callback.Callback;
 import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.InvalidWrapperException;
 

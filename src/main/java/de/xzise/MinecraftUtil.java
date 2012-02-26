@@ -46,6 +46,8 @@ import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import com.google.common.collect.ImmutableMap;
@@ -129,6 +131,13 @@ public final class MinecraftUtil {
     /*
      * Minecraft specific
      */
+
+    public static void registerMultipleListeners(final Plugin plugin, final Listener... listeners) {
+        final PluginManager manager = plugin.getServer().getPluginManager();
+        for (Listener listener : listeners) {
+            manager.registerEvents(listener, plugin);
+        }
+    }
 
     /**
      * Get maximum lines of the command sender.
@@ -1214,6 +1223,38 @@ public final class MinecraftUtil {
     }
 
     /**
+     * Tries to convert a string into an long. If the string is invalid it
+     * returns <code>null</code>.
+     * 
+     * @param string
+     *            The string to be parsed.
+     * @return The value if the string is valid, otherwise <code>null</code>.
+     * @since 1.3
+     */
+    public static Long tryAndGetLong(String string) {
+        return tryAndGetLong(string, 10);
+    }
+
+    /**
+     * Tries to convert a string into an long. If the string is invalid it
+     * returns <code>null</code>.
+     * 
+     * @param string
+     *            The string to be parsed.
+     * @param radix
+     *            The radix of the long.
+     * @return The value if the string is valid, otherwise <code>null</code>.
+     * @since 1.3
+     */
+    public static Long tryAndGetLong(String string, int radix) {
+        try {
+            return Long.parseLong(string, radix);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
      * Tries to convert a string into an integer. If the string is invalid it
      * returns <code>null</code>.
      * 
@@ -1561,12 +1602,9 @@ public final class MinecraftUtil {
      * @param start
      *            Start and first element in new array.
      * @return new array with a new first element.
-     * @deprecated {@link Arrays#copyOf(Object[], int)}
      */
-    @Deprecated
-    // TODO: Remove with BPU 2
     public static <T> T[] subArray(T[] t, int start) {
-        return Arrays.copyOf(t, start);
+        return MinecraftUtil.subArray(t, start, t.length - start);
     }
 
     /**

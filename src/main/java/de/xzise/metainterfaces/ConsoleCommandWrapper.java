@@ -21,17 +21,12 @@ import org.bukkit.command.ConsoleCommandSender;
 
 import de.xzise.MinecraftUtil;
 
-public class ConsoleCommandWrapper extends ConsoleCommandSender implements LinesCountable, Nameable {
+public class ConsoleCommandWrapper extends CommandSenderWrapper<ConsoleCommandSender> implements ConsoleCommandSender, LinesCountable, Nameable {
 
     public final static String NAME = "[CONSOLE]";
-    
-    public ConsoleCommandWrapper(ConsoleCommandSender sender) {
-        super(sender.getServer());
-    }
 
-    @Override
-    public String getName() {
-        return NAME;
+    public ConsoleCommandWrapper(ConsoleCommandSender sender) {
+        super(sender);
     }
 
     @Override

@@ -8,7 +8,6 @@ import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 
-import de.xzise.DefaultArrays;
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
 import de.xzise.wrappers.Factory;
@@ -69,7 +68,7 @@ public class PermissionsExWrapper implements PermissionsWrapper {
     @Override
     public String[] getGroup(String world, String player) {
         PermissionUser user = PermissionsEx.getPermissionManager().getUser(player);
-        return user == null ? DefaultArrays.EMPTY_STRING_ARRAY : user.getGroupsNames(world);
+        return user == null ? new String[0] : user.getGroupsNames(world);
     }
 
     @Override

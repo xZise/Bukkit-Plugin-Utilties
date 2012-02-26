@@ -10,7 +10,6 @@ import org.bukkit.plugin.Plugin;
 import de.bananaco.permissions.Permissions;
 import de.bananaco.permissions.info.InfoReader;
 import de.bananaco.permissions.worlds.WorldPermissionsManager;
-import de.xzise.DefaultArrays;
 import de.xzise.XLogger;
 import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.InvalidWrapperException;
@@ -85,7 +84,7 @@ public class BPermissionsWrapper implements PermissionsWrapper {
     @Override
     public String[] getGroup(String world, String player) {
         List<String> groups = this.worldPermissionsManager.getPermissionSet(world).getGroups(player);
-        return groups == null ? DefaultArrays.EMPTY_STRING_ARRAY : groups.toArray(new String[0]);
+        return groups == null ? new String[0] : groups.toArray(new String[0]);
     }
 
     @Override

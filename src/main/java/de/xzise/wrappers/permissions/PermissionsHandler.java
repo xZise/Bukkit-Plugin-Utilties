@@ -32,21 +32,21 @@ import de.xzise.wrappers.Handler;
 
 public class PermissionsHandler extends Handler<PermissionsWrapper> {
 
-    private static final String[] EMPTY_STRING_ARRAY = new String[0];
-
     public static final Map<String, Factory<PermissionsWrapper>> FACTORIES = new HashMap<String, Factory<PermissionsWrapper>>();
-    private static final PermissionsWrapper NULLARY_PERMISSIONS = new PermissionsWrapper() {
-        
+    private static final PermissionsWrapper NULLARY_PERMISSIONS = new NullaryPermissions();
+
+    private static class NullaryPermissions implements PermissionsWrapper {
+
         @Override
         public Plugin getPlugin() {
             return null;
         }
-        
+
         @Override
         public Boolean has(CommandSender sender, Permission<Boolean> permission) {
             return null;
         }
-        
+
         @Override
         public Integer getInteger(CommandSender sender, Permission<Integer> permission) {
             return null;
@@ -72,23 +72,44 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
             return null;
         }
     };
-    
+
     static {
         FACTORIES.put("Permissions", new PermissionPluginWrapperFactory());
         FACTORIES.put("PermissionsBukkit", new PermissionsBukkitWrapper.FactoryImpl());
     }
 
+    private boolean logUnsupported = false;
+
     public PermissionsHandler(PluginManager pluginManager, String plugin, XLogger logger) {
         super(FACTORIES, NULLARY_PERMISSIONS, pluginManager, "permissions", plugin, logger);
     }
 
+    public void setLogUnsupported(final boolean logUnsupported) {
+        this.logUnsupported = logUnsupported;
+    }
+
+    public boolean getLogUnsupported() {
+        return this.logUnsupported;
+    }
+
+    private void printUnsupported(final String name) {
+        if (this.logUnsupported) {
+            this.logger.info("PermissionsManager '" + name + "' wasn't supported by this plugin.");
+        }
+    }
+
+    private void printException(final String name) {
+        this.logger.info("Error on calling PermissionsWrapper '" + name + "'.");
+    }
+
     public boolean permission(CommandSender sender, Permission<Boolean> permission) {
-        Boolean result;
+        Boolean result = null;
         try {
             result = this.getWrapper().has(sender, permission);
         } catch (UnsupportedOperationException e) {
-            result = null;
-            this.logger.info("PermissionsManager permission check wasn't supported by this plugin.");
+            this.printUnsupported("permission check");
+        } catch (Exception e) {
+            this.printException("permission check");
         }
         if (result != null) {
             return result;
@@ -124,12 +145,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     }
 
     public int getInteger(CommandSender sender, Permission<Integer> permission) {
-        Integer result;
+        Integer result = null;
         try {
             result = this.getWrapper().getInteger(sender, permission);
         } catch (UnsupportedOperationException e) {
-            result = null;
-            this.logger.info("PermissionsManager integer getter wasn't supported by this plugin.");
+            this.printUnsupported("integer getter");
+        } catch (Exception e) {
+            this.printException("integer getter");
         }
         if (result != null) {
             return result;
@@ -139,12 +161,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     }
 
     public double getDouble(CommandSender sender, Permission<Double> permission) {
-        Double result;
+        Double result = null;
         try {
             result = this.getWrapper().getDouble(sender, permission);
         } catch (UnsupportedOperationException e) {
-            result = null;
-            this.logger.info("PermissionsManager double getter wasn't supported by this plugin.");
+            this.printUnsupported("double getter");
+        } catch (Exception e) {
+            this.printException("double getter");
         }
         if (result != null) {
             return result;
@@ -162,12 +185,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     }
 
     private String getString(CommandSender sender, Permission<String> permission, boolean recursive) {
-        String result;
+        String result = null;
         try {
             result = this.getWrapper().getString(sender, permission, recursive);
         } catch (UnsupportedOperationException e) {
-            result = null;
-            this.logger.info("PermissionsManager string getter wasn't supported by this plugin.");
+            this.printUnsupported("string getter");
+        } catch (Exception e) {
+            this.printException("string getter");
         }
         if (result != null) {
             return result;
@@ -177,12 +201,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     }
 
     public String getString(String world, String groupname, Permission<String> permission) {
-        String result;
+        String result = null;
         try {
             result = this.getWrapper().getString(groupname, null, permission);
         } catch (UnsupportedOperationException e) {
-            result = null;
-            this.logger.info("PermissionsManager string getter wasn't supported by this plugin.");
+            this.printUnsupported("string getter");
+        } catch (Exception e) {
+            this.printException("string getter");
         }
         if (result != null) {
             return result;
@@ -192,14 +217,15 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     }
 
     public String[] getGroup(String world, String player) {
-        String[] groups;
+        String[] groups = null;
         try {
             groups = this.getWrapper().getGroup(world, player);
         } catch (UnsupportedOperationException e) {
-            groups = null;
-            this.logger.info("PermissionsManager group getter wasn't supported by this plugin.");
+            this.printUnsupported("group getter");
+        } catch (Exception e) {
+            this.printException("group getter");
         }
-        return groups == null ? EMPTY_STRING_ARRAY : groups;
+        return groups == null ? new String[0] : groups;
     }
 
 }

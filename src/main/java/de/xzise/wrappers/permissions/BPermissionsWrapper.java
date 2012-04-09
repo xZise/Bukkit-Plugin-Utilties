@@ -1,12 +1,31 @@
+/*
+* This file is part of Bukkit Plugin Utilities.
+*
+* Bukkit Plugin Utilities is free software: you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License as
+* published by the Free Software Foundation, either version 3 of the License,
+* or (at your option) any later version.
+*
+* Bukkit Plugin Utilities is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public License
+* along with Bukkit Plugin Utilities.
+* If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package de.xzise.wrappers.permissions;
 
 import java.util.List;
 
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import de.bananaco.bpermissions.api.ApiLayer;
+import de.bananaco.bpermissions.api.util.CalculableType;
 import de.bananaco.permissions.Permissions;
 import de.bananaco.permissions.info.InfoReader;
 import de.bananaco.permissions.worlds.WorldPermissionsManager;
@@ -15,7 +34,7 @@ import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.InvalidWrapperException;
 
 public class BPermissionsWrapper implements PermissionsWrapper {
-    
+
     private final InfoReader infoReader;
     private final WorldPermissionsManager worldPermissionsManager;
     private final Plugin plugin;
@@ -34,17 +53,16 @@ public class BPermissionsWrapper implements PermissionsWrapper {
     @Override
     public Boolean has(CommandSender sender, Permission<Boolean> permission) {
         if (sender instanceof Player) {
-            World world = ((Player) sender).getWorld();
-            return worldPermissionsManager.getPermissionSet(world).has((Player) sender, permission.getName());
+            return ApiLayer.hasPermission(((Player) sender).getWorld().getName(), CalculableType.USER, sender.getName(), permission.getName());
         } else {
             return null;
         }
     }
-    
+
     private static String makeCompatible(String value) {
         return value.replace('.', '-');
     }
-    
+
     private String getValue(CommandSender sender, String name) {
         if (sender instanceof Player) {
             return makeCompatible(this.infoReader.getValue((Player) sender, name));

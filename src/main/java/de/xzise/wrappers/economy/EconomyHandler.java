@@ -30,6 +30,8 @@ import com.nijikokun.register.payment.Methods;
 
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.wrappers.ServiceWrapperFactory;
+import de.xzise.bukkit.util.wrappers.economy.VaultEconomyWrapper;
 import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.Handler;
 
@@ -45,6 +47,7 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
     }
 
     public static final ImmutableMap<String, Factory<EconomyWrapper>> FACTORIES;
+    public static final ImmutableMap<String, ServiceWrapperFactory<EconomyWrapper>> SERVICEFACTORIES;
 
     static {
         //@formatter:off
@@ -55,6 +58,9 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
                 .put("MineConomy", new MineConomy.Factory())
                 .put("3co", new ThreeCoWrapper.Factory())
                 .put("MultiCurrency", new MultiCurrencyWrapper.Factory()).build();
+
+        SERVICEFACTORIES = ImmutableMap.<String, ServiceWrapperFactory<EconomyWrapper>>builder()
+                .put("Vault", VaultEconomyWrapper.FACTORY).build();
         //@formatter:on
     }
 

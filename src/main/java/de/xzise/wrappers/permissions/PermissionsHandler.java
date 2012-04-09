@@ -24,8 +24,12 @@ import java.util.Map;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.wrappers.ServiceWrapperFactory;
+import de.xzise.bukkit.util.wrappers.permissions.NullaryPermissionsWrapper;
+import de.xzise.bukkit.util.wrappers.permissions.VaultPermissionsWrapper;
 import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.Handler;
 
@@ -34,40 +38,11 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
     public static final Map<String, Factory<PermissionsWrapper>> FACTORIES = new HashMap<String, Factory<PermissionsWrapper>>();
-    private static final PermissionsWrapper NULLARY_PERMISSIONS = new PermissionsWrapper() {
+    public static final Map<String, ServiceWrapperFactory<PermissionsWrapper>> SERVICEFACTORIES = new HashMap<String, ServiceWrapperFactory<PermissionsWrapper>>();
 
+    private static final PermissionsWrapper NULLARY_PERMISSIONS = new NullaryPermissionsWrapper() {
         @Override
         public Plugin getPlugin() {
-            return null;
-        }
-
-        @Override
-        public Boolean has(CommandSender sender, Permission<Boolean> permission) {
-            return null;
-        }
-
-        @Override
-        public Integer getInteger(CommandSender sender, Permission<Integer> permission) {
-            return null;
-        }
-
-        @Override
-        public String[] getGroup(String world, String player) {
-            return null;
-        }
-
-        @Override
-        public Double getDouble(CommandSender sender, Permission<Double> permission) {
-            return null;
-        }
-
-        @Override
-        public String getString(CommandSender sender, Permission<String> permission, boolean recursive) {
-            return null;
-        }
-
-        @Override
-        public String getString(String groupname, String world, Permission<String> permission) {
             return null;
         }
     };
@@ -78,6 +53,8 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         FACTORIES.put("bPermissions", new BPermissionsWrapper.FactoryImpl());
         FACTORIES.put("PermissionsEx", new PermissionsExWrapper.FactoryImpl());
         FACTORIES.put("GroupManager", new GroupManagerWrapper.FactoryImpl());
+
+        SERVICEFACTORIES.put("Vault", VaultPermissionsWrapper.FACTORY);
     }
 
     public PermissionsHandler(PluginManager pluginManager, String plugin, XLogger logger) {
@@ -197,4 +174,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         return groups == null ? EMPTY_STRING_ARRAY : groups;
     }
 
+    @Override
+    protected boolean customLoad(RegisteredServiceProvider<?> provider) {
+        if (this.getWrapper() instanceof VaultPermissionsWrapper) {
+            ((VaultPermissionsWrapper) this.getWrapper()).setProvider(provider);
+            return true;
+        } else {
+            return super.customLoad(provider);
+        }
+    }
 }

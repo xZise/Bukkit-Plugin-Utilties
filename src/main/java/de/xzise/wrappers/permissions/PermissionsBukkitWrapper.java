@@ -26,10 +26,11 @@ import com.platymuus.bukkit.permissions.Group;
 import com.platymuus.bukkit.permissions.PermissionsPlugin;
 
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.wrappers.permissions.NullaryPermissionsWrapper;
 import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.InvalidWrapperException;
 
-public class PermissionsBukkitWrapper implements PermissionsWrapper {
+public class PermissionsBukkitWrapper extends NullaryPermissionsWrapper {
 
     private final PermissionsPlugin plugin;
     
@@ -48,18 +49,6 @@ public class PermissionsBukkitWrapper implements PermissionsWrapper {
     }
 
     @Override
-    public Integer getInteger(CommandSender sender, Permission<Integer> permission) {
-        // Not supported
-        return null;
-    }
-
-    @Override
-    public Double getDouble(CommandSender sender, Permission<Double> permission) {
-        // Not supported
-        return null;
-    }
-
-    @Override
     public String[] getGroup(String world, String player) {
         List<Group> groups = this.plugin.getGroups(player);
         String[] groupNames = new String[groups.size()];
@@ -70,18 +59,6 @@ public class PermissionsBukkitWrapper implements PermissionsWrapper {
         return groupNames;
     }
 
-    @Override
-    public String getString(CommandSender sender, Permission<String> permission, boolean recursive) {
-        // Not supported
-        return null;
-    }
-
-    @Override
-    public String getString(String groupname, String world, Permission<String> permission) {
-        // Not supported
-        return null;
-    }
-    
     public static final class FactoryImpl implements Factory<PermissionsWrapper> {
 
         @Override

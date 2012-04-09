@@ -18,19 +18,18 @@
 
 package de.xzise.wrappers;
 
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.server.PluginDisableEvent;
-import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import de.xzise.MinecraftUtil;
 
-public class WrapperServerListener implements Listener {
-
-    private final Handler<?>[] handlers;
+/**
+ * <strong>Will be removed with final BPU 1.3.0!</strong>
+ * @deprecated Use {@link de.xzise.bukkit.util.wrappers.WrapperServerListener} instead!
+ */
+@Deprecated
+public class WrapperServerListener extends de.xzise.bukkit.util.wrappers.WrapperServerListener implements Listener {
 
     /**
      * Registers the listener. <strong>Not very useful anymore, and thus
@@ -68,24 +67,10 @@ public class WrapperServerListener implements Listener {
      *            the handlers which should be handled by this listener.
      */
     public static void createAndRegisterEvents(Plugin plugin, Handler<?>... handlers) {
-        plugin.getServer().getPluginManager().registerEvents(new WrapperServerListener(handlers), plugin);
+        new de.xzise.bukkit.util.wrappers.WrapperServerListener(handlers).register(plugin);
     }
 
     public WrapperServerListener(Handler<?>... handlers) {
-        this.handlers = handlers;
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPluginEnable(PluginEnableEvent event) {
-        for (Handler<?> handler : this.handlers) {
-            handler.load(event.getPlugin());
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPluginDisable(PluginDisableEvent event) {
-        for (Handler<?> handler : this.handlers) {
-            handler.reload(event.getPlugin());
-        }
+        super(handlers);
     }
 }

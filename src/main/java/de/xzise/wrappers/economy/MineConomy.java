@@ -17,50 +17,48 @@
 
 package de.xzise.wrappers.economy;
 
-import org.bukkit.plugin.Plugin;
+import me.mjolnir.mineconomy.Accounting;
 
-import com.spikensbror.bukkit.mineconomy.bank.Bank;
+import org.bukkit.plugin.Plugin;
 
 import de.xzise.XLogger;
 
 public class MineConomy implements EconomyWrapper {
 
-    private final com.spikensbror.bukkit.mineconomy.MineConomy plugin;
+    private final me.mjolnir.mineconomy.MineConomy plugin;
 
     public final class MineConomyAccount implements AccountWrapper {
 
-        private final Bank bank;
         private final String name;
 
-        public MineConomyAccount(Bank bank, String name) {
-            this.bank = bank;
+        public MineConomyAccount(String name) {
             this.name = name;
         }
 
         @Override
         public boolean hasEnough(double price) {
-            return this.bank.getTotal(this.name) >= price;
+            return this.getBalance() >= price;
         }
 
         @Override
         public void add(double price) {
-            this.bank.add(this.name, price);
+            Accounting.setBalance(this.name, this.getBalance() + price, me.mjolnir.mineconomy.MineConomy.accounts);
         }
 
         @Override
         public double getBalance() {
-            return this.bank.getTotal(this.name);
+            return Accounting.getBalance(name, me.mjolnir.mineconomy.MineConomy.accounts);
         }
 
     }
 
-    public MineConomy(com.spikensbror.bukkit.mineconomy.MineConomy plugin) {
+    public MineConomy(me.mjolnir.mineconomy.MineConomy plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public AccountWrapper getAccount(String name) {
-        return new MineConomyAccount(this.plugin.getBank(), name);
+        return new MineConomyAccount(name);
     }
 
     @Override
@@ -77,8 +75,8 @@ public class MineConomy implements EconomyWrapper {
 
         @Override
         public EconomyWrapper create(Plugin plugin, XLogger logger) {
-            if (plugin instanceof com.spikensbror.bukkit.mineconomy.MineConomy) {
-                return new MineConomy((com.spikensbror.bukkit.mineconomy.MineConomy) plugin);
+            if (plugin instanceof me.mjolnir.mineconomy.MineConomy) {
+                return new MineConomy((me.mjolnir.mineconomy.MineConomy) plugin);
             } else {
                 return null;
             }

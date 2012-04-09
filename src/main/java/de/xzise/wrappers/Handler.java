@@ -17,17 +17,21 @@
 
 package de.xzise.wrappers;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.wrappers.ServiceWrapperFactory;
 
 public class Handler<W extends Wrapper> {
 
     private final Map<String, ? extends Factory<W>> factories;
+    private final Map<String, ? extends ServiceWrapperFactory<W>> serviceWrapperFactories;
     private final PluginManager pluginManager;
     protected final XLogger logger;
     private final String type;
@@ -36,11 +40,20 @@ public class Handler<W extends Wrapper> {
     private W wrapper;
 
     public Handler(Map<String, ? extends Factory<W>> factories, PluginManager pluginManager, String type, String plugin, XLogger logger) {
-        this(factories, null, pluginManager, type, plugin, logger);
+        this(factories, new HashMap<String, ServiceWrapperFactory<W>>(0), null, pluginManager, type, plugin, logger);
+    }
+
+    public Handler(Map<String, ? extends Factory<W>> factories, Map<String, ? extends ServiceWrapperFactory<W>> serviceWrapperFactories, PluginManager pluginManager, String type, String plugin, XLogger logger) {
+        this(factories, serviceWrapperFactories, null, pluginManager, type, plugin, logger);
     }
 
     public Handler(Map<String, ? extends Factory<W>> factories, W nullaryWrapper, PluginManager pluginManager, String type, String plugin, XLogger logger) {
+        this(factories, new HashMap<String, ServiceWrapperFactory<W>>(0), nullaryWrapper, pluginManager, type, plugin, logger);
+    }
+
+    public Handler(Map<String, ? extends Factory<W>> factories, Map<String, ? extends ServiceWrapperFactory<W>> serviceWrapperFactories, W nullaryWrapper, PluginManager pluginManager, String type, String plugin, XLogger logger) {
         this.factories = factories;
+        this.serviceWrapperFactories = serviceWrapperFactories;
         this.pluginManager = pluginManager;
         this.logger = logger;
         this.type = type;
@@ -112,6 +125,10 @@ public class Handler<W extends Wrapper> {
         return false;
     }
 
+    protected boolean customLoad(RegisteredServiceProvider<?> provider) {
+        return false;
+    }
+
     protected boolean customLoad() {
         return false;
     }
@@ -156,10 +173,23 @@ public class Handler<W extends Wrapper> {
         }
     }
 
+    private void unload() {
+        this.wrapper = null;
+        this.logger.info("Deactivated " + this.type + " system.");
+    }
+
     public boolean unload(Plugin plugin) {
         if (this.wrapper != null && plugin == this.wrapper.getPlugin()) {
-            this.wrapper = null;
-            this.logger.info("Deactivated " + this.type + " system.");
+            this.unload();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean unload(RegisteredServiceProvider<?> provider) {
+        if (this.wrapper != null && provider != null && provider.getPlugin() == this.wrapper.getPlugin()) {
+            this.unload();
             return true;
         } else {
             return false;
@@ -169,6 +199,48 @@ public class Handler<W extends Wrapper> {
     public void reload(Plugin plugin) {
         if (this.unload(plugin)) {
             this.load();
+        }
+    }
+
+    public void reload(RegisteredServiceProvider<?> provider) {
+        if (this.unload(provider)) {
+            this.load();
+        }
+    }
+
+    public void load(RegisteredServiceProvider<?> provider) {
+        if (provider != null && this.wrapper == null && this.pluginName != null) {
+            PluginDescriptionFile pdf = provider.getPlugin().getDescription();
+            if (this.pluginName.isEmpty() || (pdf.getName().equalsIgnoreCase(this.pluginName))) {
+                boolean loaded = this.customLoad(provider);
+
+                if (!loaded) {
+                    ServiceWrapperFactory<W> factory = this.serviceWrapperFactories.get(pdf.getName());
+                    if (factory != null) {
+                        try {
+                            this.wrapper = factory.create(provider, this.logger);
+                            loaded = true;
+                        } catch (InvalidWrapperException e) {
+                            this.logger.warning("Error while loading the plugin " + pdf.getFullName() + " into " + this.type + " system.");
+                            this.logger.warning("Error message: " + e.getMessage());
+                            this.wrapper = null;
+                        } catch (Throwable e) {
+                            this.logger.warning("Unspecified error while loading the plugin " + pdf.getFullName() + " into " + this.type + " system.");
+                            this.logger.warning("Error message: '" + e.getMessage() + "' of '" + e.getClass().getSimpleName() + "'");
+                            this.wrapper = null;
+                        }
+                    }
+                }
+
+                if (loaded) {
+                    if (this.wrapper == null) {
+                        this.logger.warning("Invalid " + this.type + " system found: " + pdf.getFullName());
+                    } else {
+                        this.loaded();
+                        this.logger.info("Linked with " + this.type + " system: " + pdf.getFullName());
+                    }
+                }
+            }
         }
     }
 }

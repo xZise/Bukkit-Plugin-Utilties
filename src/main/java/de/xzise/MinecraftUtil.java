@@ -1447,7 +1447,7 @@ public final class MinecraftUtil {
         }
     }
 
-    public static <T> T getRandomFromChances(List<ChanceElement<T>> chances) {
+    public static <T> T getRandomFromChances(Collection<? extends ChanceElement<T>> chances) {
         if (MinecraftUtil.isSet(chances)) {
             // Cumulate chances
             final double defChance = 1.0 / chances.size();

@@ -136,4 +136,9 @@ public class CommandSenderWrapper<T extends CommandSender> implements CommandSen
     public String getName() {
         return this.sender.getName();
     }
+
+    @Override
+    public void sendMessage(String[] lines) {
+        this.sender.sendMessage(lines);
+    }
 }

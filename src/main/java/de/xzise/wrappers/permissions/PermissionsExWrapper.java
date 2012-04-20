@@ -26,9 +26,8 @@ import ru.tehkode.permissions.PermissionGroup;
 import ru.tehkode.permissions.PermissionUser;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 
-import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.wrappers.InvalidWrapperException;
 
 public class PermissionsExWrapper implements PermissionsWrapper {
@@ -40,9 +39,8 @@ public class PermissionsExWrapper implements PermissionsWrapper {
     }
 
     private static PermissionUser getUser(CommandSender sender) {
-        final String username = MinecraftUtil.getPlayerName(sender);
-        if (username != null) {
-            return PermissionsEx.getPermissionManager().getUser(username);
+        if (sender instanceof Player) {
+            return PermissionsEx.getPermissionManager().getUser(sender.getName());
         } else {
             return null;
         }
@@ -83,6 +81,7 @@ public class PermissionsExWrapper implements PermissionsWrapper {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public String[] getGroup(String world, String player) {
         PermissionUser user = PermissionsEx.getPermissionManager().getUser(player);
@@ -113,7 +112,8 @@ public class PermissionsExWrapper implements PermissionsWrapper {
         this.permissions = permissions;
     }
 
-    public static final class FactoryImpl implements Factory<PermissionsWrapper> {
+    @SuppressWarnings("deprecation")
+    public static final class FactoryImpl implements de.xzise.wrappers.Factory<PermissionsWrapper>, WrapperFactory<PermissionsWrapper, Plugin> {
 
         @Override
         public PermissionsWrapper create(Plugin plugin, XLogger logger) throws InvalidWrapperException {

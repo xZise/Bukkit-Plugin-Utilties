@@ -26,8 +26,8 @@ import com.platymuus.bukkit.permissions.Group;
 import com.platymuus.bukkit.permissions.PermissionsPlugin;
 
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.bukkit.util.wrappers.permissions.NullaryPermissionsWrapper;
-import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.InvalidWrapperException;
 
 public class PermissionsBukkitWrapper extends NullaryPermissionsWrapper {
@@ -59,7 +59,8 @@ public class PermissionsBukkitWrapper extends NullaryPermissionsWrapper {
         return groupNames;
     }
 
-    public static final class FactoryImpl implements Factory<PermissionsWrapper> {
+    @SuppressWarnings("deprecation")
+    public static final class FactoryImpl implements de.xzise.wrappers.Factory<PermissionsWrapper>, WrapperFactory<PermissionsWrapper, Plugin> {
 
         @Override
         public PermissionsWrapper create(Plugin plugin, XLogger logger) throws InvalidWrapperException {

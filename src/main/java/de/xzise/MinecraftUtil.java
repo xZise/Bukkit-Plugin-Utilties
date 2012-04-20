@@ -88,7 +88,7 @@ public final class MinecraftUtil {
 
     /** Version information */
     private static final int[] VERSION = new int[] { 1, 3, 0 };
-    public static final boolean OFFICAL = false;
+    public static final boolean OFFICAL = true;
 
     private MinecraftUtil() {
     }
@@ -775,7 +775,7 @@ public final class MinecraftUtil {
 
     private static String getPrefix(double value, double factor, String[] prefixes, DecimalFormat format) {
         int iterations = 0;
-        while ((factor < 1 ? Math.abs(value) <= factor : Math.abs(value) >= factor) && iterations < prefixes.length - 1) {
+        while ((factor < 1 ? Math.abs(value) <= 1 : Math.abs(value) >= factor) && iterations < prefixes.length - 1) {
             value /= factor;
             iterations++;
         }
@@ -1832,6 +1832,15 @@ public final class MinecraftUtil {
             return +1;
         } else {
             return 0;
+        }
+    }
+
+    public static String getFileExtension(final String filename) {
+        int delimiter = filename.lastIndexOf('.');
+        if (delimiter > 0 && delimiter < filename.length() - 1) {
+            return filename.substring(delimiter + 1);
+        } else {
+            return "";
         }
     }
 }

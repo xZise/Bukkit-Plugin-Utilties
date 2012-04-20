@@ -84,7 +84,6 @@ public class WrapperServerListener {
         for (Handler<?> handler : this.handlers) {
             handler.load(event.getPlugin());
         }
-        System.out.println("p enable!");
     }
 
     public void onPluginDisable(PluginDisableEvent event) {

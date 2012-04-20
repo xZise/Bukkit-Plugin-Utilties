@@ -20,9 +20,10 @@ package de.xzise.wrappers.economy;
 import org.bukkit.plugin.Plugin;
 
 import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 
-public class iConomyFactory implements Factory<EconomyWrapper> {
+@SuppressWarnings("deprecation")
+public class iConomyFactory implements de.xzise.wrappers.Factory<EconomyWrapper>, WrapperFactory<EconomyWrapper, Plugin> {
 
     @Override
     public EconomyWrapper create(Plugin plugin, XLogger logger) {

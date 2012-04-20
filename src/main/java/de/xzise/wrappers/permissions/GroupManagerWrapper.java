@@ -32,7 +32,7 @@ import org.bukkit.plugin.Plugin;
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
 import de.xzise.bukkit.util.callback.Callback;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.wrappers.InvalidWrapperException;
 
 public class GroupManagerWrapper implements PermissionsWrapper {
@@ -195,7 +195,8 @@ public class GroupManagerWrapper implements PermissionsWrapper {
         }
     }
 
-    public static final class FactoryImpl implements Factory<PermissionsWrapper> {
+    @SuppressWarnings("deprecation")
+    public static final class FactoryImpl implements de.xzise.wrappers.Factory<PermissionsWrapper>, WrapperFactory<PermissionsWrapper, Plugin> {
 
         @Override
         public PermissionsWrapper create(Plugin plugin, XLogger logger) throws InvalidWrapperException {

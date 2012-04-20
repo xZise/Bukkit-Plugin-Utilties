@@ -18,27 +18,27 @@
 package de.xzise.wrappers.permissions;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.ServicesManager;
+
+import com.google.common.collect.ImmutableMap;
 
 import de.xzise.XLogger;
-import de.xzise.bukkit.util.wrappers.ServiceWrapperFactory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.bukkit.util.wrappers.permissions.NullaryPermissionsWrapper;
 import de.xzise.bukkit.util.wrappers.permissions.VaultPermissionsWrapper;
-import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.Handler;
 
 public class PermissionsHandler extends Handler<PermissionsWrapper> {
 
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
-    public static final Map<String, Factory<PermissionsWrapper>> FACTORIES = new HashMap<String, Factory<PermissionsWrapper>>();
-    public static final Map<String, ServiceWrapperFactory<PermissionsWrapper>> SERVICEFACTORIES = new HashMap<String, ServiceWrapperFactory<PermissionsWrapper>>();
+    public static final ImmutableMap<String, WrapperFactory<PermissionsWrapper, Plugin>> FACTORIES;
+    public static final ImmutableMap<String, WrapperFactory<PermissionsWrapper, RegisteredServiceProvider<?>>> SERVICE_FACTORIES;
 
     private static final PermissionsWrapper NULLARY_PERMISSIONS = new NullaryPermissionsWrapper() {
         @Override
@@ -48,17 +48,26 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
     };
 
     static {
-        FACTORIES.put("Permissions", new PermissionPluginWrapperFactory());
-        FACTORIES.put("PermissionsBukkit", new PermissionsBukkitWrapper.FactoryImpl());
-        FACTORIES.put("bPermissions", new BPermissionsWrapper.FactoryImpl());
-        FACTORIES.put("PermissionsEx", new PermissionsExWrapper.FactoryImpl());
-        FACTORIES.put("GroupManager", new GroupManagerWrapper.FactoryImpl());
+        FACTORIES = ImmutableMap.<String, WrapperFactory<PermissionsWrapper, Plugin>>builder()
+                .put("Permissions", new PermissionPluginWrapperFactory())
+                .put("PermissionsBukkit", new PermissionsBukkitWrapper.FactoryImpl())
+                .put("bPermissions", new BPermissionsWrapper.FactoryImpl())
+                .put("PermissionsEx", new PermissionsExWrapper.FactoryImpl())
+                .put("GroupManager", new GroupManagerWrapper.FactoryImpl())
+                .build();
 
-        SERVICEFACTORIES.put("Vault", VaultPermissionsWrapper.FACTORY);
+        SERVICE_FACTORIES = ImmutableMap.<String, WrapperFactory<PermissionsWrapper, RegisteredServiceProvider<?>>>builder()
+                .put("Vault", VaultPermissionsWrapper.FACTORY)
+                .build();
     }
 
-    public PermissionsHandler(PluginManager pluginManager, String plugin, XLogger logger) {
-        super(FACTORIES, NULLARY_PERMISSIONS, pluginManager, "permissions", plugin, logger);
+    @Deprecated
+    public PermissionsHandler(final PluginManager pluginManager, final String plugin, final XLogger logger) {
+        this(pluginManager, null, plugin, logger);
+    }
+
+    public PermissionsHandler(final PluginManager pluginManager, final ServicesManager servicesManager, final String plugin, final XLogger logger) {
+        super(FACTORIES, SERVICE_FACTORIES, NULLARY_PERMISSIONS, pluginManager, servicesManager, "permissions", plugin, logger);
     }
 
     public boolean permission(CommandSender sender, Permission<Boolean> permission) {
@@ -81,7 +90,7 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         }
     }
 
-    private static boolean hasByDefault(CommandSender sender, Boolean def) {
+    private static boolean hasByDefault(final CommandSender sender, final Boolean def) {
         if (def != null && def == true) {
             return true;
         } else {

@@ -26,7 +26,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import de.xzise.XLogger;
-import de.xzise.bukkit.util.wrappers.ServiceWrapperFactory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.wrappers.InvalidWrapperException;
 import de.xzise.wrappers.permissions.Permission;
 import de.xzise.wrappers.permissions.PermissionsWrapper;
@@ -106,7 +106,7 @@ public class VaultPermissionsWrapper implements PermissionsWrapper {
         return false;
     }
 
-    public static final ServiceWrapperFactory<PermissionsWrapper> FACTORY = new ServiceWrapperFactory<PermissionsWrapper>() {
+    public static final WrapperFactory<PermissionsWrapper, RegisteredServiceProvider<?>> FACTORY = new WrapperFactory<PermissionsWrapper, RegisteredServiceProvider<?>>() {
         @Override
         public PermissionsWrapper create(RegisteredServiceProvider<?> service, XLogger logger) throws InvalidWrapperException {
             final VaultPermissionsWrapper wrapper = new VaultPermissionsWrapper(service.getPlugin());

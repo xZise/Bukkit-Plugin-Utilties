@@ -6,10 +6,11 @@ import cosine.boseconomy.BOSEconomy;
 
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.wrappers.InvalidWrapperException;
 
-public class BOSEconFactory implements Factory<EconomyWrapper> {
+@SuppressWarnings("deprecation")
+public class BOSEconFactory implements de.xzise.wrappers.Factory<EconomyWrapper>, WrapperFactory<EconomyWrapper, Plugin> {
 
     @Override
     public EconomyWrapper create(Plugin plugin, XLogger logger) throws InvalidWrapperException {

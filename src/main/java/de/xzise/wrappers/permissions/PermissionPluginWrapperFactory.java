@@ -22,10 +22,11 @@ import org.bukkit.plugin.Plugin;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
 import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.wrappers.InvalidWrapperException;
 
-public class PermissionPluginWrapperFactory implements Factory<PermissionsWrapper> {
+@SuppressWarnings("deprecation")
+public class PermissionPluginWrapperFactory implements de.xzise.wrappers.Factory<PermissionsWrapper>, WrapperFactory<PermissionsWrapper, Plugin> {
 
     @Override
     public PermissionsWrapper create(Plugin plugin, XLogger logger) throws InvalidWrapperException {

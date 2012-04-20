@@ -18,13 +18,11 @@
 
 package de.xzise.bukkit.util.wrappers;
 
-import org.bukkit.plugin.RegisteredServiceProvider;
-
 import de.xzise.XLogger;
 import de.xzise.wrappers.InvalidWrapperException;
 
-public interface ServiceWrapperFactory<T> {
+public interface WrapperFactory<T, P> {
 
-    T create(RegisteredServiceProvider<?> provider, XLogger logger) throws InvalidWrapperException;
+    T create(P plugin, XLogger logger) throws InvalidWrapperException;
 
 }

@@ -30,7 +30,7 @@ import de.bananaco.permissions.Permissions;
 import de.bananaco.permissions.info.InfoReader;
 import de.bananaco.permissions.worlds.WorldPermissionsManager;
 import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.wrappers.InvalidWrapperException;
 
 public class BPermissionsWrapper implements PermissionsWrapper {
@@ -116,7 +116,8 @@ public class BPermissionsWrapper implements PermissionsWrapper {
         return null;
     }
 
-    public static final class FactoryImpl implements Factory<PermissionsWrapper> {
+    @SuppressWarnings("deprecation")
+    public static final class FactoryImpl implements de.xzise.wrappers.Factory<PermissionsWrapper>, WrapperFactory<PermissionsWrapper, Plugin> {
 
         @Override
         public PermissionsWrapper create(Plugin plugin, XLogger logger) throws InvalidWrapperException {

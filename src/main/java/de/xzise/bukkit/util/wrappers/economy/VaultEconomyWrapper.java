@@ -24,7 +24,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import de.xzise.XLogger;
-import de.xzise.bukkit.util.wrappers.ServiceWrapperFactory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.wrappers.InvalidWrapperException;
 import de.xzise.wrappers.economy.AccountWrapper;
 import de.xzise.wrappers.economy.EconomyWrapper;
@@ -80,7 +80,7 @@ public class VaultEconomyWrapper implements EconomyWrapper {
         return this.plugin;
     }
 
-    public static final ServiceWrapperFactory<EconomyWrapper> FACTORY = new ServiceWrapperFactory<EconomyWrapper>() {
+    public static final WrapperFactory<EconomyWrapper, RegisteredServiceProvider<?>> FACTORY = new WrapperFactory<EconomyWrapper, RegisteredServiceProvider<?>>() {
         @Override
         public EconomyWrapper create(RegisteredServiceProvider<?> service, XLogger logger) throws InvalidWrapperException {
             if (service.getProvider() instanceof Economy) {

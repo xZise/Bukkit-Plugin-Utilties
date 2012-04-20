@@ -6,6 +6,7 @@ import me.ashtheking.currency.CurrencyList;
 import org.bukkit.plugin.Plugin;
 
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 
 public class MultiCurrencyWrapper implements EconomyWrapper {
 
@@ -54,7 +55,8 @@ public class MultiCurrencyWrapper implements EconomyWrapper {
         return this.plugin;
     }
 
-    public static class Factory implements de.xzise.wrappers.Factory<EconomyWrapper> {
+    @SuppressWarnings("deprecation")
+    public static class Factory implements de.xzise.wrappers.Factory<EconomyWrapper>, WrapperFactory<EconomyWrapper, Plugin> {
 
         @Override
         public EconomyWrapper create(Plugin plugin, XLogger logger) {

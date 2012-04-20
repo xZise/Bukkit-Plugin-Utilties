@@ -23,16 +23,18 @@ import java.text.DecimalFormat;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.ServicesManager;
 
 import com.google.common.collect.ImmutableMap;
 import com.nijikokun.register.payment.Methods;
 
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
-import de.xzise.bukkit.util.wrappers.ServiceWrapperFactory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.bukkit.util.wrappers.economy.VaultEconomyWrapper;
-import de.xzise.wrappers.Factory;
 import de.xzise.wrappers.Handler;
 
 public class EconomyHandler extends Handler<EconomyWrapper> {
@@ -46,20 +48,21 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         NOT_ENOUGH;
     }
 
-    public static final ImmutableMap<String, Factory<EconomyWrapper>> FACTORIES;
-    public static final ImmutableMap<String, ServiceWrapperFactory<EconomyWrapper>> SERVICEFACTORIES;
+    public static final ImmutableMap<String, WrapperFactory<EconomyWrapper, Plugin>> FACTORIES;
+    public static final ImmutableMap<String, WrapperFactory<EconomyWrapper, RegisteredServiceProvider<?>>> SERVICE_FACTORIES;
 
     static {
         //@formatter:off
-        FACTORIES = ImmutableMap.<String, Factory<EconomyWrapper>>builder()
+        FACTORIES = ImmutableMap.<String, WrapperFactory<EconomyWrapper, Plugin>>builder()
                 .put("BOSEconomy", new BOSEconFactory())
                 .put("iConomy", new iConomyFactory())
                 .put("Essentials", new Essentials.Factory())
                 .put("MineConomy", new MineConomy.Factory())
                 .put("3co", new ThreeCoWrapper.Factory())
-                .put("MultiCurrency", new MultiCurrencyWrapper.Factory()).build();
+                .put("MultiCurrency", new MultiCurrencyWrapper.Factory())
+                .build();
 
-        SERVICEFACTORIES = ImmutableMap.<String, ServiceWrapperFactory<EconomyWrapper>>builder()
+        SERVICE_FACTORIES = ImmutableMap.<String, WrapperFactory<EconomyWrapper, RegisteredServiceProvider<?>>>builder()
                 .put("Vault", VaultEconomyWrapper.FACTORY).build();
         //@formatter:on
     }
@@ -86,8 +89,13 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
     private final boolean useMethods;
     private final PluginManager pluginManager;
 
-    public EconomyHandler(PluginManager pluginManager, String economyPluginName, String economyBaseName, XLogger logger) {
-        super(FACTORIES, pluginManager, "economy", economyPluginName, logger);
+    @Deprecated
+    public EconomyHandler(final PluginManager pluginManager, final String economyPluginName, final String economyBaseName, final XLogger logger) {
+        this(pluginManager, null, economyPluginName, economyBaseName, logger);
+    }
+
+    public EconomyHandler(PluginManager pluginManager, final ServicesManager servicesManager, String economyPluginName, String economyBaseName, XLogger logger) {
+        super(FACTORIES, SERVICE_FACTORIES, pluginManager, servicesManager, "economy", economyPluginName, logger);
         this.economyBaseName = economyBaseName;
         this.pluginManager = pluginManager;
         Methods m = null;

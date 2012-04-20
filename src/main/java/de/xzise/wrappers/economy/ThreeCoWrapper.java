@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 
 public class ThreeCoWrapper implements EconomyWrapper {
 
@@ -67,7 +68,8 @@ public class ThreeCoWrapper implements EconomyWrapper {
         return this.eco;
     }
 
-    public static class Factory implements de.xzise.wrappers.Factory<EconomyWrapper> {
+    @SuppressWarnings("deprecation")
+    public static class Factory implements de.xzise.wrappers.Factory<EconomyWrapper>, WrapperFactory<EconomyWrapper, Plugin> {
 
         @Override
         public EconomyWrapper create(Plugin plugin, XLogger logger) {

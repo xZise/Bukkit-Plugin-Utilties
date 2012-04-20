@@ -6,31 +6,35 @@
  * published by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  * 
- * Foobar is distributed in the hope that it will be useful,
+ * Bukkit Plugin Utilities is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Bukkit Plugin Utilities.
+ * If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.xzise.wrappers;
+package de.xzise.bukkit.util.wrappers;
 
-public class InvalidWrapperException extends Exception {
+public class InvalidServiceException extends Exception {
 
-    private static final long serialVersionUID = 7540374362448021388L;
+    private static final long serialVersionUID = -9069034811714446631L;
 
-    public InvalidWrapperException(String message, Throwable cause) {
+    public InvalidServiceException() {
+        super();
+    }
+
+    public InvalidServiceException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public InvalidWrapperException(String message) {
+    public InvalidServiceException(String message) {
         super(message);
     }
 
-    public InvalidWrapperException(Throwable cause) {
+    public InvalidServiceException(Throwable cause) {
         super(cause);
     }
-
 }

@@ -24,6 +24,7 @@ import com.earth2me.essentials.api.NoLoanPermittedException;
 import com.earth2me.essentials.api.UserDoesNotExistException;
 
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 
 public class Essentials implements EconomyWrapper {
 
@@ -91,7 +92,8 @@ public class Essentials implements EconomyWrapper {
         return this.economy;
     }
 
-    public static class Factory implements de.xzise.wrappers.Factory<EconomyWrapper> {
+    @SuppressWarnings("deprecation")
+    public static class Factory implements de.xzise.wrappers.Factory<EconomyWrapper>, WrapperFactory<EconomyWrapper, Plugin> {
 
         @Override
         public EconomyWrapper create(Plugin plugin, XLogger logger) {

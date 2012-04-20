@@ -34,15 +34,16 @@ public final class NullaryCommandSender implements CommandSender {
      * Default command sender. The server is null!
      */
     public static final NullaryCommandSender EMPTY_SENDER = new NullaryCommandSender(Bukkit.getServer());
-    
+
     private final Server server;
-    
+
     public NullaryCommandSender(Server server) {
         this.server = server;
     }
-    
+
     @Override
-    public void sendMessage(String message) {}
+    public void sendMessage(String message) {
+    }
 
     @Override
     public boolean isOp() {
@@ -95,10 +96,12 @@ public final class NullaryCommandSender implements CommandSender {
     }
 
     @Override
-    public void removeAttachment(PermissionAttachment attachment) {}
+    public void removeAttachment(PermissionAttachment attachment) {
+    }
 
     @Override
-    public void recalculatePermissions() {}
+    public void recalculatePermissions() {
+    }
 
     @Override
     public Set<PermissionAttachmentInfo> getEffectivePermissions() {
@@ -106,11 +109,16 @@ public final class NullaryCommandSender implements CommandSender {
     }
 
     @Override
-    public void setOp(boolean value) {}
+    public void setOp(boolean value) {
+    }
 
     @Override
     public String getName() {
         return null;
+    }
+
+    @Override
+    public void sendMessage(String[] arg0) {
     }
 
 }

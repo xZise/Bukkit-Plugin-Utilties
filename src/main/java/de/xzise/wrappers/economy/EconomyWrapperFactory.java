@@ -21,7 +21,8 @@ package de.xzise.wrappers.economy;
 import de.xzise.wrappers.Factory;
 
 /**
- * @deprecated Use {@link Factory} with {@link EconomyWrapper} as generic instead.
+ * @deprecated Use {@link Factory} with {@link EconomyWrapper} as generic
+ *             instead.
  */
 @Deprecated
 public interface EconomyWrapperFactory extends Factory<EconomyWrapper> {

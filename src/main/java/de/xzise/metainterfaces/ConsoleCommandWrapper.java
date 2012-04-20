@@ -19,25 +19,46 @@
 package de.xzise.metainterfaces;
 
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.conversations.Conversation;
 
 import de.xzise.MinecraftUtil;
 
-public class ConsoleCommandWrapper extends ConsoleCommandSender implements LinesCountable, Nameable {
+public class ConsoleCommandWrapper extends CommandSenderWrapper<ConsoleCommandSender> implements ConsoleCommandSender, LinesCountable, Nameable {
 
     public final static String NAME = "[CONSOLE]";
-    
-    public ConsoleCommandWrapper(ConsoleCommandSender sender) {
-        super(sender.getServer());
-    }
 
-    @Override
-    public String getName() {
-        return NAME;
+    public ConsoleCommandWrapper(ConsoleCommandSender sender) {
+        super(sender);
     }
 
     @Override
     public int getMaxLinesVisible() {
         return MinecraftUtil.CONSOLE_LINES_COUNT;
+    }
+
+    @Override
+    public void abandonConversation(Conversation conversation) {
+        this.sender.abandonConversation(conversation);
+    }
+
+    @Override
+    public void acceptConversationInput(String input) {
+        this.sender.acceptConversationInput(input);
+    }
+
+    @Override
+    public boolean beginConversation(Conversation conversation) {
+        return this.sender.beginConversation(conversation);
+    }
+
+    @Override
+    public boolean isConversing() {
+        return this.sender.isConversing();
+    }
+
+    @Override
+    public void sendRawMessage(String message) {
+        this.sender.sendRawMessage(message);
     }
 
 }

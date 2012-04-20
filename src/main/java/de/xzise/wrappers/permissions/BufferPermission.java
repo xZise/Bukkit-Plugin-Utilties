@@ -27,7 +27,7 @@ public class BufferPermission<T> implements Permission<T> {
         this.name = name;
         this.def = def;
     }
-    
+
     public static <T> BufferPermission<T> create(String name, T def) {
         return new BufferPermission<T>(name, def);
     }

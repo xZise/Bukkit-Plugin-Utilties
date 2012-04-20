@@ -18,6 +18,14 @@
 
 package de.xzise;
 
+/**
+ * Simple callback interface. If you require version 1.3 use
+ * {@link de.xzise.bukkit.util.callback.Callback} instead.
+ * 
+ * @since 1.0
+ * @deprecated Use {@link de.xzise.bukkit.util.callback.Callback} instead.
+ */
+@Deprecated
 public interface Callback<Result, Parameter> {
     Result call(Parameter parameter);
 }

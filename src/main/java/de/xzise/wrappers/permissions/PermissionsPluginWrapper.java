@@ -31,7 +31,7 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
 
     private PermissionHandler handler;
     private Plugin plugin;
-    
+
     @Override
     public Boolean has(CommandSender sender, Permission<Boolean> permission) {
         Player player = MinecraftUtil.getPlayer(sender);
@@ -57,7 +57,7 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
             return null;
         }
     }
-    
+
     @Override
     public Double getDouble(CommandSender sender, Permission<Double> permission) {
         Player player = MinecraftUtil.getPlayer(sender);
@@ -73,13 +73,13 @@ public class PermissionsPluginWrapper implements PermissionsWrapper {
             return null;
         }
     }
-    
+
     @SuppressWarnings("deprecation")
     @Override
     public String[] getGroup(String world, String player) {
         return new String[] { this.handler.getGroup(world, player) };
     }
-    
+
     public PermissionsPluginWrapper(Permissions plugin) {
         this.handler = plugin.getHandler();
     }

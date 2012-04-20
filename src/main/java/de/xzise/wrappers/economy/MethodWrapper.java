@@ -53,14 +53,29 @@ public class MethodWrapper implements EconomyWrapper {
 
     }
 
+    private MethodWrapper(Method method) {
+        this.method = method;
+        this.plugin = (Plugin) method.getPlugin();
+    }
+
+    /**
+     * @deprecated Use {@link MethodWrapper#create(Method)} instead.
+     */
+    @Deprecated
     public MethodWrapper(Method method, Plugin plugin) {
+        if (!(method.getPlugin() instanceof Plugin)) {
+            throw new IllegalArgumentException("Plugin of the method isn't really a plugin.");
+        }
+        if (method.getPlugin() != plugin) {
+            throw new IllegalArgumentException("Plugin parameter differ from the method's plugin.");
+        }
         this.method = method;
         this.plugin = plugin;
     }
 
     public static MethodWrapper create(Method method) {
         if (method != null && method.getPlugin() instanceof Plugin) {
-            return new MethodWrapper(method, (Plugin) method.getPlugin());
+            return new MethodWrapper(method);
         } else {
             return null;
         }

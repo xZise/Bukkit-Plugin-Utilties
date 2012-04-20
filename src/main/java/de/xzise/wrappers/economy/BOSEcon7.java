@@ -21,14 +21,12 @@ package de.xzise.wrappers.economy;
 import org.bukkit.plugin.Plugin;
 
 import cosine.boseconomy.BOSEconomy;
-import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
 
-public class BOSEcon0 implements EconomyWrapper {
+public class BOSEcon7 implements EconomyWrapper {
 
     private BOSEconomy economy;
 
-    public BOSEcon0(BOSEconomy plugin) {
+    public BOSEcon7(BOSEconomy plugin) {
         this.economy = plugin;
     }
 
@@ -47,16 +45,14 @@ public class BOSEcon0 implements EconomyWrapper {
             return this.getBalance() >= price;
         }
 
-        @SuppressWarnings("deprecation")
         @Override
         public void add(double price) {
-            this.economy.addPlayerMoney(this.name, (int) Math.round(price), false);
+            this.economy.addPlayerMoney(this.name, price, false);
         }
 
-        @SuppressWarnings("deprecation")
         @Override
         public double getBalance() {
-            return this.economy.getPlayerMoney(this.name);
+            return this.economy.getPlayerMoneyDouble(name);
         }
 
     }
@@ -71,22 +67,8 @@ public class BOSEcon0 implements EconomyWrapper {
         return null;
     }
 
-    public static class FactoryImpl implements Factory<EconomyWrapper> {
-
-        @Override
-        public EconomyWrapper create(Plugin plugin, XLogger logger) {
-            if (plugin instanceof BOSEconomy) {
-                return new BOSEcon0((BOSEconomy) plugin);
-            } else {
-                return null;
-            }
-        }
-
-    }
-
     @Override
     public Plugin getPlugin() {
         return this.economy;
     }
-
 }

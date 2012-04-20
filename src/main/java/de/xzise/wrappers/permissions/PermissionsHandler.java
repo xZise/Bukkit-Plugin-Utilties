@@ -19,69 +19,56 @@
 package de.xzise.wrappers.permissions;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.ServicesManager;
+
+import com.google.common.collect.ImmutableMap;
 
 import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
+import de.xzise.bukkit.util.wrappers.permissions.NullaryPermissionsWrapper;
+import de.xzise.bukkit.util.wrappers.permissions.VaultPermissionsWrapper;
 import de.xzise.wrappers.Handler;
 
 public class PermissionsHandler extends Handler<PermissionsWrapper> {
 
-    public static final Map<String, Factory<PermissionsWrapper>> FACTORIES = new HashMap<String, Factory<PermissionsWrapper>>();
-    private static final PermissionsWrapper NULLARY_PERMISSIONS = new NullaryPermissions();
+    public static final ImmutableMap<String, WrapperFactory<PermissionsWrapper, Plugin>> FACTORIES;
+    public static final ImmutableMap<String, WrapperFactory<PermissionsWrapper, RegisteredServiceProvider<?>>> SERVICE_FACTORIES;
 
-    private static class NullaryPermissions implements PermissionsWrapper {
-
+    private static final PermissionsWrapper NULLARY_PERMISSIONS = new NullaryPermissionsWrapper() {
         @Override
         public Plugin getPlugin() {
-            return null;
-        }
-
-        @Override
-        public Boolean has(CommandSender sender, Permission<Boolean> permission) {
-            return null;
-        }
-
-        @Override
-        public Integer getInteger(CommandSender sender, Permission<Integer> permission) {
-            return null;
-        }
-
-        @Override
-        public String[] getGroup(String world, String player) {
-            return null;
-        }
-
-        @Override
-        public Double getDouble(CommandSender sender, Permission<Double> permission) {
-            return null;
-        }
-
-        @Override
-        public String getString(CommandSender sender, Permission<String> permission, boolean recursive) {
-            return null;
-        }
-
-        @Override
-        public String getString(String groupname, String world, Permission<String> permission) {
             return null;
         }
     };
 
     static {
-        FACTORIES.put("Permissions", new PermissionPluginWrapperFactory());
-        FACTORIES.put("PermissionsBukkit", new PermissionsBukkitWrapper.FactoryImpl());
+        FACTORIES = ImmutableMap.<String, WrapperFactory<PermissionsWrapper, Plugin>>builder()
+                .put("Permissions", new PermissionPluginWrapperFactory())
+                .put("PermissionsBukkit", new PermissionsBukkitWrapper.FactoryImpl())
+                .put("bPermissions", new BPermissionsWrapper.FactoryImpl())
+                .put("PermissionsEx", new PermissionsExWrapper.FactoryImpl())
+                .put("GroupManager", new GroupManagerWrapper.FactoryImpl())
+                .build();
+
+        SERVICE_FACTORIES = ImmutableMap.<String, WrapperFactory<PermissionsWrapper, RegisteredServiceProvider<?>>>builder()
+                .put("Vault", VaultPermissionsWrapper.FACTORY)
+                .build();
     }
 
     private boolean logUnsupported = false;
 
-    public PermissionsHandler(PluginManager pluginManager, String plugin, XLogger logger) {
-        super(FACTORIES, NULLARY_PERMISSIONS, pluginManager, "permissions", plugin, logger);
+    @Deprecated
+    public PermissionsHandler(final PluginManager pluginManager, final String plugin, final XLogger logger) {
+        this(pluginManager, null, plugin, logger);
+    }
+
+    public PermissionsHandler(final PluginManager pluginManager, final ServicesManager servicesManager, final String plugin, final XLogger logger) {
+        super(FACTORIES, SERVICE_FACTORIES, NULLARY_PERMISSIONS, pluginManager, servicesManager, "permissions", plugin, logger);
     }
 
     public void setLogUnsupported(final boolean logUnsupported) {
@@ -122,7 +109,7 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         }
     }
 
-    private static boolean hasByDefault(CommandSender sender, Boolean def) {
+    private static boolean hasByDefault(final CommandSender sender, final Boolean def) {
         if (def != null && def == true) {
             return true;
         } else {
@@ -144,6 +131,10 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         return false;
     }
 
+    private static <T> T getValue(T t, Permission<T> permission) {
+        return t == null ? permission.getDefault() : t;
+    }
+
     public int getInteger(CommandSender sender, Permission<Integer> permission) {
         Integer result = null;
         try {
@@ -153,11 +144,7 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         } catch (Exception e) {
             this.printException("integer getter");
         }
-        if (result != null) {
-            return result;
-        } else {
-            return permission.getDefault();
-        }
+        return getValue(result, permission);
     }
 
     public double getDouble(CommandSender sender, Permission<Double> permission) {
@@ -169,11 +156,7 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         } catch (Exception e) {
             this.printException("double getter");
         }
-        if (result != null) {
-            return result;
-        } else {
-            return permission.getDefault();
-        }
+        return getValue(result, permission);
     }
 
     public String getString(CommandSender sender, Permission<String> permission) {
@@ -193,27 +176,19 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         } catch (Exception e) {
             this.printException("string getter");
         }
-        if (result != null) {
-            return result;
-        } else {
-            return permission.getDefault();
-        }
+        return getValue(result, permission);
     }
 
     public String getString(String world, String groupname, Permission<String> permission) {
         String result = null;
         try {
-            result = this.getWrapper().getString(groupname, null, permission);
+            result = this.getWrapper().getString(groupname, world, permission);
         } catch (UnsupportedOperationException e) {
             this.printUnsupported("string getter");
         } catch (Exception e) {
             this.printException("string getter");
         }
-        if (result != null) {
-            return result;
-        } else {
-            return permission.getDefault();
-        }
+        return getValue(result, permission);
     }
 
     public String[] getGroup(String world, String player) {
@@ -228,4 +203,13 @@ public class PermissionsHandler extends Handler<PermissionsWrapper> {
         return groups == null ? new String[0] : groups;
     }
 
+    @Override
+    protected boolean customLoad(RegisteredServiceProvider<?> provider) {
+        if (this.getWrapper() instanceof VaultPermissionsWrapper) {
+            ((VaultPermissionsWrapper) this.getWrapper()).setProvider(provider);
+            return true;
+        } else {
+            return super.customLoad(provider);
+        }
+    }
 }

@@ -25,7 +25,7 @@ import com.earth2me.essentials.api.NoLoanPermittedException;
 import com.earth2me.essentials.api.UserDoesNotExistException;
 
 import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 
 public class Essentials implements EconomyWrapper {
 
@@ -56,7 +56,7 @@ public class Essentials implements EconomyWrapper {
             try {
                 Economy.add(this.name, price);
             } catch (UserDoesNotExistException e) {
-                this.logger.warning("Unable to change the price of " + this.name + ", because the user doesn't exists.");                
+                this.logger.warning("Unable to change the price of " + this.name + ", because the user doesn't exists.");
             } catch (NoLoanPermittedException e) {
                 this.logger.warning("Unable to change the price of " + this.name + ", because the loan was permitted.");
             }
@@ -93,7 +93,8 @@ public class Essentials implements EconomyWrapper {
         return this.economy;
     }
 
-    public static class FactoryImpl implements Factory<EconomyWrapper> {
+    @SuppressWarnings("deprecation")
+    public static class Factory implements de.xzise.wrappers.Factory<EconomyWrapper>, WrapperFactory<EconomyWrapper, Plugin> {
 
         @Override
         public EconomyWrapper create(Plugin plugin, XLogger logger) {
@@ -110,7 +111,5 @@ public class Essentials implements EconomyWrapper {
                 return null;
             }
         }
-
     }
-
 }

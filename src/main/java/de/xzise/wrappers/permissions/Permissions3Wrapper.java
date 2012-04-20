@@ -60,7 +60,12 @@ public class Permissions3Wrapper implements PermissionsWrapper {
     private User getUser(CommandSender sender) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            return this.handler.getUserObject(player.getName(), player.getWorld().getName());
+            try {
+                return this.handler.getUserObject(player.getWorld().getName(), player.getName());
+            } catch (Exception e) {
+                this.logger.warning("Got exception while getting the user '" + player.getName() + "' in world '" + player.getWorld().getName() + "'!", e);
+                return null;
+            }
         } else {
             return null;
         }
@@ -72,7 +77,12 @@ public class Permissions3Wrapper implements PermissionsWrapper {
     }
 
     private <T> T getGroupValue(String group, String world, EntryVisitor<T> visitor) {
-        Group groupObj = this.handler.getGroupObject(world, group);
+        Group groupObj = null;
+        try {
+            groupObj = this.handler.getGroupObject(world, group);
+        } catch (Exception e) {
+            this.logger.warning("Got exception while getting the group '" + group + "' in world '" + world + "'!", e);
+        }
         return groupObj == null ? null : groupObj.recursiveCheck(visitor);
     }
 

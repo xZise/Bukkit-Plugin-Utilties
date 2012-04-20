@@ -28,15 +28,15 @@ public class iConomy4 implements EconomyWrapper {
 
     private final Bank bank;
     private final Plugin plugin;
-    
+
     public final class Account4 implements AccountWrapper {
 
         private final Account account;
-        
+
         public Account4(Account account) {
             this.account = account;
         }
-        
+
         @Override
         public boolean hasEnough(double price) {
             return this.account.hasEnough(price);
@@ -51,14 +51,14 @@ public class iConomy4 implements EconomyWrapper {
         public double getBalance() {
             return this.account.getBalance();
         }
-        
+
     }
-    
+
     public iConomy4(Plugin plugin) {
         this.bank = iConomy.getBank();
         this.plugin = plugin;
     }
-    
+
     @Override
     public AccountWrapper getAccount(String name) {
         if (!this.bank.hasAccount(name)) {

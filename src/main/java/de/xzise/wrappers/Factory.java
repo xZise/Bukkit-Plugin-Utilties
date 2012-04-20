@@ -21,8 +21,13 @@ package de.xzise.wrappers;
 import org.bukkit.plugin.Plugin;
 
 import de.xzise.XLogger;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 
-public interface Factory<T> {
+/**
+ * @deprecated Use {@link WrapperFactory} instead!
+ */
+@Deprecated
+public interface Factory<T> extends WrapperFactory<T, Plugin> {
 
     T create(Plugin plugin, XLogger logger) throws InvalidWrapperException;
 

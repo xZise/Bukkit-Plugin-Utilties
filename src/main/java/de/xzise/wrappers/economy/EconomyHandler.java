@@ -19,20 +19,22 @@
 package de.xzise.wrappers.economy;
 
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.ServicesManager;
 
+import com.google.common.collect.ImmutableMap;
 import com.nijikokun.register.payment.Methods;
 
 import de.xzise.MinecraftUtil;
 import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
+import de.xzise.bukkit.util.wrappers.economy.VaultEconomyWrapper;
 import de.xzise.wrappers.Handler;
 
 public class EconomyHandler extends Handler<EconomyWrapper> {
@@ -46,13 +48,23 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         NOT_ENOUGH;
     }
 
-    public static final Map<String, Factory<EconomyWrapper>> FACTORIES = new HashMap<String, Factory<EconomyWrapper>>();
+    public static final ImmutableMap<String, WrapperFactory<EconomyWrapper, Plugin>> FACTORIES;
+    public static final ImmutableMap<String, WrapperFactory<EconomyWrapper, RegisteredServiceProvider<?>>> SERVICE_FACTORIES;
 
     static {
-        FACTORIES.put("BOSEconomy", new BOSEcon0.FactoryImpl());
-        FACTORIES.put("iConomy", new iConomyFactory());
-        FACTORIES.put("Essentials", new Essentials.FactoryImpl());
-        FACTORIES.put("MineConomy", new MineConomy.FactoryImpl());
+        //@formatter:off
+        FACTORIES = ImmutableMap.<String, WrapperFactory<EconomyWrapper, Plugin>>builder()
+                .put("BOSEconomy", new BOSEconFactory())
+                .put("iConomy", new iConomyFactory())
+                .put("Essentials", new Essentials.Factory())
+                .put("MineConomy", new MineConomy.Factory())
+                .put("3co", new ThreeCoWrapper.Factory())
+                .put("MultiCurrency", new MultiCurrencyWrapper.Factory())
+                .build();
+
+        SERVICE_FACTORIES = ImmutableMap.<String, WrapperFactory<EconomyWrapper, RegisteredServiceProvider<?>>>builder()
+                .put("Vault", VaultEconomyWrapper.FACTORY).build();
+        //@formatter:on
     }
 
     public static final AccountWrapper NULLARY_ACCOUNT = new AccountWrapper() {
@@ -73,12 +85,17 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
     };
 
     private AccountWrapper tax = NULLARY_ACCOUNT;
-    private final boolean useMethods;
     private String economyBaseName;
+    private final boolean useMethods;
     private final PluginManager pluginManager;
 
-    public EconomyHandler(PluginManager pluginManager, String economyPluginName, String economyBaseName, XLogger logger) {
-        super(FACTORIES, pluginManager, "economy", economyPluginName, logger);
+    @Deprecated
+    public EconomyHandler(final PluginManager pluginManager, final String economyPluginName, final String economyBaseName, final XLogger logger) {
+        this(pluginManager, null, economyPluginName, economyBaseName, logger);
+    }
+
+    public EconomyHandler(PluginManager pluginManager, final ServicesManager servicesManager, String economyPluginName, String economyBaseName, XLogger logger) {
+        super(FACTORIES, SERVICE_FACTORIES, pluginManager, servicesManager, "economy", economyPluginName, logger);
         this.economyBaseName = economyBaseName;
         this.pluginManager = pluginManager;
         Methods m = null;
@@ -149,20 +166,23 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
         return this.pay(sender, null, 0, basic);
     }
 
+    public static String defaultFormat(double price) {
+        DecimalFormat fakeForm = new DecimalFormat("#,##0.##");
+        String fakeFormed = fakeForm.format(price);
+        if (fakeFormed.endsWith(".")) {
+            fakeFormed = fakeFormed.substring(0, fakeFormed.length() - 1);
+        }
+
+        return fakeFormed;
+    }
+
     public String format(double price) {
         String result = null;
         if (this.isActive()) {
             result = this.getWrapper().format(price);
         }
-
         if (result == null) {
-            DecimalFormat fakeForm = new DecimalFormat("#,##0.##");
-            String fakeFormed = fakeForm.format(price);
-            if (fakeFormed.endsWith(".")) {
-                fakeFormed = fakeFormed.substring(0, fakeFormed.length() - 1);
-            }
-
-            return fakeFormed;
+            return defaultFormat(price);
         }
         return result;
     }
@@ -188,7 +208,7 @@ public class EconomyHandler extends Handler<EconomyWrapper> {
     }
 
     @Override
-    protected boolean customLoad(Plugin plugin) {
+    protected boolean customLoad() {
         if (this.useMethods && !Methods.hasMethod() && Methods.setMethod(this.pluginManager)) {
             this.setWrapper(MethodWrapper.create(Methods.getMethod()));
             return true;

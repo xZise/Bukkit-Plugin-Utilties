@@ -23,10 +23,11 @@ import org.bukkit.plugin.Plugin;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
 import de.xzise.XLogger;
-import de.xzise.wrappers.Factory;
+import de.xzise.bukkit.util.wrappers.WrapperFactory;
 import de.xzise.wrappers.InvalidWrapperException;
 
-public class PermissionPluginWrapperFactory implements Factory<PermissionsWrapper> {
+@SuppressWarnings("deprecation")
+public class PermissionPluginWrapperFactory implements de.xzise.wrappers.Factory<PermissionsWrapper>, WrapperFactory<PermissionsWrapper, Plugin> {
 
     @Override
     public PermissionsWrapper create(Plugin plugin, XLogger logger) throws InvalidWrapperException {
@@ -44,7 +45,8 @@ public class PermissionPluginWrapperFactory implements Factory<PermissionsWrappe
                 case 3:
                     return new Permissions3Wrapper((Permissions) plugin, logger);
                 case 2:
-                case 1: // Guess, that the Permissions 1 work with the Permissions 2 wrapper (e.g. for PermissionsEx)
+                case 1: // Guess, that the Permissions 1 work with the
+                        // Permissions 2 wrapper (e.g. for PermissionsEx)
                     return new PermissionsPluginWrapper((Permissions) plugin);
                 default:
                     throw new InvalidWrapperException("Unknown Permissions version. (" + compVersion + ")");

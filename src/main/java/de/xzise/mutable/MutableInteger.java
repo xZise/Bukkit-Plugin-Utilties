@@ -22,51 +22,59 @@ public final class MutableInteger extends Number implements Mutable<Integer> {
 
     private static final long serialVersionUID = 1877823395691583265L;
 
+    private int v;
+
+    /**
+     * @deprecated Use {@link #getValue()} or {@link #intValue()}!
+     */
+    @Deprecated
     public int value;
 
     public MutableInteger() {
-        this.value = 0;
+        this(0);
     }
 
     public MutableInteger(Number number) {
-        this.value = number.intValue();
+        this(number.intValue());
     }
 
     public MutableInteger(int value) {
-        this.value = value;
+        this.setValue(value);
     }
 
     @Override
     public void setValue(Integer t) {
+        this.v = t;
         this.value = t;
     }
 
     @Override
     public Integer getValue() {
-        return this.value;
+        return this.v;
     }
 
     public void inc() {
+        this.v++;
         this.value++;
     }
 
     @Override
     public int intValue() {
-        return this.value;
+        return this.v;
     }
 
     @Override
     public long longValue() {
-        return this.value;
+        return this.v;
     }
 
     @Override
     public float floatValue() {
-        return this.value;
+        return this.v;
     }
 
     @Override
     public double doubleValue() {
-        return this.value;
+        return this.v;
     }
 }

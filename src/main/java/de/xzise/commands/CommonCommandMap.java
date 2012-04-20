@@ -24,16 +24,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import me.taylorkelly.help.Help;
-
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
 import de.xzise.MinecraftUtil;
-import de.xzise.wrappers.help.HelpAPI;
-import de.xzise.wrappers.help.TKellyHelpPlugin;
 
 public class CommonCommandMap implements CommandMap, CommandExecutor {
 
@@ -120,18 +116,18 @@ public class CommonCommandMap implements CommandMap, CommandExecutor {
 
     @Override
     public void setHelperPlugin(Plugin helperPlugin, Plugin owner) {
-        HelpAPI api = null;
-        if (helperPlugin instanceof Help) {
-            api = new TKellyHelpPlugin((Help) helperPlugin);
-        }
-
-        if (api != null) {
-            for (SubCommand command : this.subCommandsList) {
-                if (command instanceof SmallHelpable) {
-                    ((SmallHelpable) command).register(api, owner);
-                }
-            }
-        }
+//        HelpAPI api = null;
+//        if (helperPlugin instanceof Help) {
+//            api = new TKellyHelpPlugin((Help) helperPlugin);
+//        }
+//
+//        if (api != null) {
+//            for (SubCommand command : this.subCommandsList) {
+//                if (command instanceof SmallHelpable) {
+//                    ((SmallHelpable) command).register(api, owner);
+//                }
+//            }
+//        }
     }
 
     @Override
